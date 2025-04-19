@@ -34,11 +34,25 @@ PLOT_SEMLOG = "semilog"
 PLOT_LOGLOG = "loglog"
 PLOT_TYPES = (PLOT_LINEAR, PLOT_SEMLOG, PLOT_LOGLOG)
 
-# PKRE data inputs
+# Data inputs
 DATA = "data"
+
+# PKRE data
 DATA_B = "delay_fractions"
 DATA_L = "decay_constants"
 DATA_BIG_L = "Lambda"
+
+# Diffusion data
+# Cross sections
+MATERIALS = "materials"
+XS_SIGMA_A = "sigma_a"
+XS_D = "diffusion_coefficient"
+XS_NUSIGMA_FP = "prompt_nu_sigma_f"
+# Geometry
+GEOM = "geometry"
+GEOM_DX = "delta_x"
+NODES = "nodes"
+
 
 # Plot names
 EXT = ".pdf"  # consider making this user-configurable

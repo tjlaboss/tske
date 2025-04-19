@@ -43,6 +43,12 @@ data_type:
   {DATA_B}: list(num(min=0))
   {DATA_L}: list(num(min=0))
   {DATA_BIG_L}: num(min=0)
+  {MATERIALS}: list(include('material_type'))
+---
+material_type:
+  {XS_SIGMA_A}: num(min=0)
+  {XS_NUSIGMA_FP}: num(min=0)
+  {XS_D}: num(min=0)
 ---
 plot_type:
   {PLOT_SHOW}: int(min=0, max=2, required=False)
