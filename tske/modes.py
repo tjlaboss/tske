@@ -9,11 +9,11 @@ import typing
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
-import tpke
-import tpke.keys as K
+import tske
+import tske.keys as K
 
 
-def plot_only(output_dir: tpke.tping.PathType):
+def plot_only(output_dir: tske.tping.PathType):
 	"""Only plot the existing results
 	
 	Parameters:
@@ -35,7 +35,7 @@ def plot_only(output_dir: tpke.tping.PathType):
 	else:
 		try:
 			matA = np.loadtxt(afpath)
-			tpke.plotter.plot_matrix(matA)
+			tske.plotter.plot_matrix(matA)
 		except Exception as e:
 			errs.append(f"Failed to plot Matrix A: {type(e)}: {e}")
 		else:
@@ -57,7 +57,7 @@ def plot_only(output_dir: tpke.tping.PathType):
 			reactivities = np.loadtxt(rfpath)
 			powers = np.loadtxt(pfpath)
 			# if len(times) != len(reactivities) != len(powers)  -> handled in plotting
-			tpke.plotter.plot_reactivity_and_power(times, reactivities, powers)
+			tske.plotter.plot_reactivity_and_power(times, reactivities, powers)
 		except Exception as e:
 			errs.append(f"Failed to plot power and reactivity: {type(e)}: {e}")
 		else:
@@ -72,7 +72,7 @@ def plot_only(output_dir: tpke.tping.PathType):
 	return le
 
 
-def solution(input_dict: typing.Mapping, output_dir: tpke.tping.PathType):
+def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""Solve the Point Kinetics Reactor Equations
 	
 	Numerically solve the PKRE, write the data to the output directory,
@@ -89,7 +89,7 @@ def solution(input_dict: typing.Mapping, output_dir: tpke.tping.PathType):
 	
 	"""
 	plots = input_dict.get(K.PLOT, {})
-	method = tpke.matrices.METHODS[input_dict[K.METH]]
+	method = tske.matrices.METHODS[input_dict[K.METH]]
 	total = input_dict[K.TIME][K.TIME_TOTAL]
 	dt = input_dict[K.TIME][K.TIME_DELTA]
 	num_steps = int(np.ceil(total/dt))  # Will raise total if not divisible
@@ -97,7 +97,7 @@ def solution(input_dict: typing.Mapping, output_dir: tpke.tping.PathType):
 	np.savetxt(os.path.join(output_dir, K.FNAME_TIME), times)
 	rxdict = dict(input_dict[K.REAC])
 	rxtype = rxdict.pop(K.REAC_TYPE)
-	reactivity_vals = tpke.reactivity.get_reactivity_vector(
+	reactivity_vals = tske.reactivity.get_reactivity_vector(
 		r_type=rxtype,
 		n=num_steps,
 		dt=dt,
@@ -116,16 +116,16 @@ def solution(input_dict: typing.Mapping, output_dir: tpke.tping.PathType):
 	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_B), matB)
 	to_show = plots.get(K.PLOT_SHOW, 0)
 	if plots.get(K.PLOT_SPY):
-		tpke.plotter.plot_matrix(matA)
+		tske.plotter.plot_matrix(matA)
 		plt.savefig(os.path.join(output_dir, K.FNAME_SPY))
 		if to_show > 1:
 			plt.show()
-	power_vals, concentration_vals = tpke.solver.linalg(matA, matB, num_steps)
+	power_vals, concentration_vals = tske.solver.linalg(matA, matB, num_steps)
 	np.savetxt(os.path.join(output_dir, K.FNAME_P), power_vals)
 	np.savetxt(os.path.join(output_dir, K.FNAME_C), concentration_vals)
 	prplot = plots.get(K.PLOT_PR)
 	if prplot == 1:
-		tpke.plotter.plot_reactivity_and_power(
+		tske.plotter.plot_reactivity_and_power(
 			times=times,
 			reacts=reactivity_vals,
 			powers=power_vals,
@@ -145,7 +145,7 @@ def solution(input_dict: typing.Mapping, output_dir: tpke.tping.PathType):
 
 def study_timesteps(
 		input_dict: typing.Mapping,
-		output_dir: tpke.tping.PathType,
+		output_dir: tske.tping.PathType,
 		dts: typing.Iterable[float]
 ):
 	"""Study the effect of timestep size upon final power.
@@ -189,14 +189,14 @@ def study_timesteps(
 		f.write(report)
 	plot_dts = np.array(dts)[1:]
 	plot_err = np.array(errors)[1:]*100
-	tpke.plotter.plot_convergence(plot_dts, plot_err, in_percent=True)
+	tske.plotter.plot_convergence(plot_dts, plot_err, in_percent=True)
 	fpath_plot = os.path.join(output_dir, K.FNAME_CONVERGE)
 	plt.savefig(fpath_plot)
 	print("Results plotted to:", fpath_plot)
 	plt.show()
 
 
-def _load_solution(study_dir: tpke.tping.PathType) -> float:
+def _load_solution(study_dir: tske.tping.PathType) -> float:
 	"""Load the last power from a transient."""
 	fpath = os.path.join(study_dir, K.FNAME_P)
 	try:

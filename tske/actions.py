@@ -8,8 +8,8 @@ all attributes of Action instances.
 """
 import argparse
 import os.path
-from tpke.modes import plot_only
-from tpke.yamlin import SCHEMA
+from tske.modes import plot_only
+from tske.yamlin import SCHEMA
 
 class SchemaDumpAction(argparse.Action):
 	"""Argparse action to dump the Yamale schema to a YAML file."""

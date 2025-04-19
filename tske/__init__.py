@@ -4,13 +4,13 @@ _simplefilter("ignore", UserWarning)
 __author__ = "Travis J. Labossiere-Hickman"
 __email__ = "travisl2@illinois.edu"
 
-import tpke.keys
-import tpke.tping
-import tpke.modes
-import tpke.actions
-import tpke.arguments
-import tpke.matrices
-import tpke.reactivity
-import tpke.solver
-import tpke.yamlin
-import tpke.plotter
+import tske.keys
+import tske.tping
+import tske.modes
+import tske.actions
+import tske.arguments
+import tske.matrices
+import tske.reactivity
+import tske.solver
+import tske.yamlin
+import tske.plotter

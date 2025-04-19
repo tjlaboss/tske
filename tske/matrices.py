@@ -6,8 +6,8 @@ Matrix builders for Point Kinetics Equations
 
 import numpy as np
 import typing
-from tpke import keys
-from tpke.tping import T_arr
+from tske import keys
+from tske.tping import T_arr
 
 
 def __check_inputs(n, rho_vec, betas, lams):

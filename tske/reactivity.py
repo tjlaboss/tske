@@ -6,8 +6,8 @@ All units are arbitrary.
 """
 import typing
 import numpy as np
-import tpke.keys as K
-from tpke.tping import T_arr
+import tske.keys as K
+from tske.tping import T_arr
 
 def step(rho: float, start=0, stop=np.inf) -> typing.Callable:
 	"""Generate a step function

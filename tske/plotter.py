@@ -3,7 +3,7 @@ Plotter
 
 Plotting thingies
 """
-import tpke.keys as K
+import tske.keys as K
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
 import typing

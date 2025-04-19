@@ -7,9 +7,9 @@ YAML reading and validation.
 import typing
 import yamale
 import numpy as np
-from tpke.matrices import METHODS
-from tpke.tping import PathType
-from tpke.keys import *
+from tske.matrices import METHODS
+from tske.tping import PathType
+from tske.keys import *
 
 try:
 	from ruamel import yaml

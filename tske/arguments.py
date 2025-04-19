@@ -4,7 +4,7 @@ Arguments
 Deal with argument parsing
 """
 import argparse
-from tpke.actions import SchemaDumpAction, PlotOnlyAction
+from tske.actions import SchemaDumpAction, PlotOnlyAction
 
 
 LOGO = r"""

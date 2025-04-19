@@ -9,7 +9,7 @@ or to write my own Gauss-Seidel iterator, but that's not a priority.
 """
 
 import scipy.linalg as la
-from tpke.tping import T_arr
+from tske.tping import T_arr
 
 
 def __split_results(vecX: T_arr, n: int):
