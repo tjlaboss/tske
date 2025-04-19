@@ -122,14 +122,24 @@ def check_input(config: typing.Mapping):
 	if rx[REAC_TYPE] == RAMP and np.sign(rx[RHO]) != np.sign(rx[RAMP_SLOPE]):
 		errs.append("Reactivity inserted and insertion ramp slope have different signs.")
 	max_mat = len(config[DATA][MATERIALS]) - 1
+	num_nodes = len(config[GEOM][NODES])
+	if num_nodes < 3:
+		errs.append("The minimum number of spatial nodes is 3.")
+	boundary_nodes = (0, len(config[GEOM][NODES]) - 1)
 	found_mats = set()
-	for node in config[GEOM][NODES]:
+	for i, node in enumerate(config[GEOM][NODES]):
 		found_mats.add(node[NODE_MATERIAL])
 		if NODE_SWAPS in node:
 			found_mats |= set(node[NODE_SWAPS].values())
+		if i in boundary_nodes:
+			if not node.get(NODE_BC):
+				errs.append("First and last nodes must have boundary conditions.")
+		else:
+			if node.get(NODE_BC):
+				errs.append("Interior nodes must not have boundary conditions.")
+			node[NODE_BC] = None
 	if max(found_mats) > max_mat:
 		errs.append(f"Invalid material number: maximum is {max_mat}")
-	# Might add some more checks later.
 	if errs:
 		errstr = f"There were {len(errs)} errors:\n\t"
 		errstr += "\n\t".join(errs)
