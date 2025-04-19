@@ -20,6 +20,18 @@ data:
       diffusion_coefficient: 1.1
 
 
+geometry:
+  delta_x: 1.0
+  nodes:
+    - material: 0
+      boundary_condition: "absorptive"
+    - material: 1
+      swaps:
+        0.1: 0
+    - material: 0
+      boundary_condition: "absorptive"
+
+
 reactivity:
   type: step
 # rho: 0.0  # null transient

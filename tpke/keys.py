@@ -52,6 +52,14 @@ XS_NUSIGMA_FP = "prompt_nu_sigma_f"
 GEOM = "geometry"
 GEOM_DX = "delta_x"
 NODES = "nodes"
+NODE_MATERIAL = "material"
+NODE_SWAPS = "swaps"
+# Boundary conditions
+NODE_BC = "boundary_condition"
+BC_ZERO = "absorptive"      # Zero flux
+BC_VACUUM = "vacuum"        # Zero incoming current
+BC_MIRROR = "reflective"    # Zero current
+BC_TYPES = (BC_ZERO, BC_VACUUM, BC_MIRROR)
 
 
 # Plot names

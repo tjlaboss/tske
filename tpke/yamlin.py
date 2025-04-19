@@ -31,6 +31,7 @@ def _enum(iterable: typing.Iterable, **kwargs) -> str:
 SCHEMA = f"""\
 {TIME}: include('time_type')
 {DATA}: include('data_type')
+{GEOM}: include('geometry_type')
 {PLOT}: include('plot_type', required=False)
 {REAC}: any(include('step_type'), include('ramp_type'), include('sine_type'))
 {METH}: {_enum(METHODS.keys(), ignore_case=True)}
@@ -49,6 +50,15 @@ material_type:
   {XS_SIGMA_A}: num(min=0)
   {XS_NUSIGMA_FP}: num(min=0)
   {XS_D}: num(min=0)
+---
+geometry_type:
+  {GEOM_DX}: num(min=0)
+  {NODES}: list('node_type')
+---
+node_type:
+  {NODE_MATERIAL}: int(min=0)
+  {NODE_SWAPS}: map(int(), key=num(min=0))
+  {NODE_BC}: {_enum(BC_TYPES, ignore_case=True, required=False)}
 ---
 plot_type:
   {PLOT_SHOW}: int(min=0, max=2, required=False)
@@ -111,6 +121,14 @@ def check_input(config: typing.Mapping):
 	rx = config[REAC]
 	if rx[REAC_TYPE] == RAMP and np.sign(rx[RHO]) != np.sign(rx[RAMP_SLOPE]):
 		errs.append("Reactivity inserted and insertion ramp slope have different signs.")
+	max_mat = len(config[DATA][MATERIALS]) - 1
+	found_mats = set()
+	for node in config[GEOM][NODES]:
+		found_mats.add(node[NODE_MATERIAL])
+		if NODE_SWAPS in node:
+			found_mats |= set(node[NODE_SWAPS].values())
+	if max(found_mats) > max_mat:
+		errs.append(f"Invalid material number: maximum is {max_mat}")
 	# Might add some more checks later.
 	if errs:
 		errstr = f"There were {len(errs)} errors:\n\t"
