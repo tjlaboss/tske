@@ -6,8 +6,15 @@ Matrix builders for Point Kinetics Equations
 
 import numpy as np
 import typing
+import enum
 from tske import keys
 from tske.tping import T_arr, T_nodearr
+
+
+class Methods(enum.IntEnum):
+	explicit = 0
+	implicit = 1
+	cranknic = 2
 
 
 def __check_inputs(n, rho_vec, betas, lams):
@@ -21,7 +28,10 @@ def __check_inputs(n, rho_vec, betas, lams):
 		 f"number of delayed neutron decay constants ({len_lams}).")
 
 
-def __crank_precursors(ijk, n, i, ndg, A, lams, betas, L, dt):
+def __crank_precursors(
+		ijk, n, i, ndg, A, lams, betas, L, dt,
+		explicit, implicit, cranknic
+):
 	# Flux/power is at index 0
 	ixc0 = ijk(n+0, i, 0)  # phi(i, n)
 	ixc1 = ijk(n+1, i, 0)  # phi(i, n+1)
@@ -30,15 +40,18 @@ def __crank_precursors(ijk, n, i, ndg, A, lams, betas, L, dt):
 		ic0 = ijk(n+0, i, k+1)  # i, n,   precursor k
 		ic1 = ijk(n+1, i, k+1)  # i, n+1, precursor k
 		# Delayed source in flux (TO flux, FROM precursors)
-		A[ixc1, ic0] = lams[k]
-		A[ixc1, ic1] = lams[k]
+		A[ixc1, ic0] = 0 if implicit else lams[k]
+		A[ixc1, ic1] = 0 if explicit else lams[k]
 		# Precursor source (TO precursors, FROM flux)
-		A[ic1, ixc0] = betas[k]/L
-		A[ic1, ixc1] = betas[k]/L
+		A[ic1, ixc0] = 0 if implicit else betas[k]/L
+		A[ic1, ixc1] = 0 if explicit else betas[k]/L
 		# Precursor sink (TO precursors, FROM precursors in time)
+		invtime = 2/dt if cranknic else 1/dt
+		n0_term = 0 if implicit else -lams[k]
+		n1_term = 0 if explicit else -lams[k]
 		# Include factor of 2 in time numerator
-		A[ic1, ic0] = +2/dt - lams[k]
-		A[ic1, ic1] = -2/dt - lams[k]
+		A[ic1, ic0] = +invtime + n0_term
+		A[ic1, ic1] = -invtime + n1_term
 
 def crank_nicolson(
 		dt: float,
@@ -48,7 +61,8 @@ def crank_nicolson(
 		v1: float,
 		dx: float,
 		nodes: T_nodearr,
-		P0: typing.Sequence[float]
+		P0: typing.Sequence[float],
+		method=Methods.cranknic
 ) -> typing.Tuple[T_arr, T_arr]:
 	"""Build A and B matrices using Crank-Nicolson.
 	
@@ -81,6 +95,11 @@ def crank_nicolson(
 	P0: sequence of float
 		Starting flux. Must match len(nodes).
 	
+	method: int
+		0 = explicit Euler
+		1 = implicit Euler
+		2 = Crank-Nicolson
+	
 	Returns:
 	--------
 	A: np.ndarray
@@ -89,10 +108,14 @@ def crank_nicolson(
 	B: np.ndarray
 		Vector [Nx1] array, for RHS of matrix solution.
 	"""
+	assert method in range(3)
+	explicit = (method == Methods.explicit)
+	implicit = (method == Methods.implicit)
+	cranknic = (method == Methods.cranknic)
+	
 	# __check_inputs(n, rho_vec, betas, lams)
 	ndg = len(betas)	# number of delayed groups
 	beff = sum(betas)   # beta effective
-	# rho_vec *= beff	 # convert from $
 
 	nx, nt = nodes.shape
 	size = (1 + ndg)*nt*nx
@@ -106,12 +129,14 @@ def crank_nicolson(
 	B = np.zeros(size)
 	C0s = (P0*betas)/(lams*L)  # Initial precursor concentrations
 	
-	# 2 / (v*dt) : multiply this by 2 instead of dividing everything else by 2
-	invdt2 = 2*v1/dt
+	invdt = v1/dt
+	if cranknic:
+		invdt *= 2 # multiply this by 2 instead of dividing everything else by 2
 	
 	for n in range(nt - 1):
 		def gen_precursors(i_x):
-			__crank_precursors(ijk=ijk, n=n, i=i_x, ndg=ndg, A=A, lams=lams, betas=betas, L=L, dt=dt)
+			__crank_precursors(ijk=ijk, n=n, i=i_x, ndg=ndg, A=A, lams=lams, betas=betas, L=L, dt=dt,
+			                   explicit=explicit, implicit=implicit, cranknic=cranknic)
 		# interior nodes
 		for i in range(1, nx - 1):
 			# Coupling coefficients: assumes uniform dx
@@ -132,13 +157,15 @@ def crank_nicolson(
 			ixc1 = ijk(n+1, i+0, 0)  # phi(i,   n+1)
 			ixr1 = ijk(n+1, i+1, 0)  # phi(i+1, n+1)
 			# Center node
-			A[ixc1, ixc0] = +invdt2 - Dl0 - Dr0 - sig_a0 + sig_f0  # i, n
-			A[ixc1, ixc1] = -invdt2 - Dl1 - Dr1 - sig_a1 + sig_f1  # i, n+1
+			n0_term = 0 if implicit else -Dl0 - Dr0 - sig_a0 + sig_f0
+			n1_term = 0 if explicit else -Dl1 - Dr1 - sig_a1 + sig_f1
+			A[ixc1, ixc0] = +invdt + n0_term  # i, n
+			A[ixc1, ixc1] = -invdt + n1_term  # i, n+1
 			# Adjacent nodes
-			A[ixc1, ixl0] = Dl0  # i-1, n
-			A[ixc1, ixr0] = Dr0  # i+1, n
-			A[ixc1, ixl1] = Dl1  # i-1, n+1
-			A[ixc1, ixr1] = Dr1  # i+1, n+1
+			A[ixc1, ixl0] = 0 if implicit else Dl0  # i-1, n
+			A[ixc1, ixr0] = 0 if implicit else Dr0  # i+1, n
+			A[ixc1, ixl1] = 0 if explicit else Dl1  # i-1, n+1
+			A[ixc1, ixr1] = 0 if explicit else Dr1  # i+1, n+1
 			#
 			gen_precursors(i_x=i)
 		
@@ -159,11 +186,13 @@ def crank_nicolson(
 		Dr1 = nodes[0, n+1].get_Dhat(nodes[1, n+1])/dx
 		# West node
 		# FIXME: not exactly right but good enough for testing
-		A[iwc1, iwc0] = +invdt2 - 2*Dr0 - sig_a0 + sig_f0  # 0, n
-		A[iwc1, iwc1] = -invdt2 - 2*Dr1 - sig_a1 + sig_f1  # 0, n+1
+		n0_term = 0 if implicit else -2*Dr0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -2*Dr1 - sig_a1 + sig_f1
+		A[iwc1, iwc0] = +invdt + n0_term  # 0, n
+		A[iwc1, iwc1] = -invdt + n1_term  # 0, n+1
 		# Node 1 (right)
-		A[iwc1, iwr0] = Dr0
-		A[iwc1, iwr1] = Dr1
+		A[iwc1, iwr0] = 0 if implicit else Dr0
+		A[iwc1, iwr1] = 0 if explicit else Dr1
 		#
 		gen_precursors(i_x=0)
 		
@@ -182,11 +211,13 @@ def crank_nicolson(
 		Dl1 = nodes[X, n+1].get_Dhat(nodes[X-1, n+1])/dx
 		# East node
 		# FIXME: not exactly right but good enough for testing
-		A[iec1, iec0] = +invdt2 - 2*Dl0 - sig_a0 + sig_f0  # X, n
-		A[iec1, iec1] = -invdt2 - 2*Dl1 - sig_a1 + sig_f1  # X, n+1
+		n0_term = 0 if implicit else -2*Dl0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -2*Dl1 - sig_a1 + sig_f1
+		A[iec1, iec0] = +invdt + n0_term  # X, n
+		A[iec1, iec1] = -invdt + n1_term  # X, n+1
 		# Node X-1 (left)
-		A[iec1, iel0] = Dl0
-		A[iec1, iel1] = Dl1
+		A[iec1, iel0] = Dl0 if implicit else 0
+		A[iec1, iel1] = Dl1 if explicit else 0
 		#
 		gen_precursors(i_x=X)
 		
