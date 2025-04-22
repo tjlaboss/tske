@@ -1,7 +1,7 @@
 """
 Modes
 
-Run modes for TPKE
+Run modes for TSKE
 """
 import os
 import sys
@@ -73,9 +73,9 @@ def plot_only(output_dir: tske.tping.PathType):
 
 
 def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
-	"""Solve the Point Kinetics Reactor Equations
+	"""Solve the Spatial Kinetics Reactor Equations
 	
-	Numerically solve the PKRE, write the data to the output directory,
+	Numerically solve the SKRE, write the data to the output directory,
 	make the indicated plots, and save plots to the output directory.
 	
 	Parameters:
