@@ -54,8 +54,8 @@ def plot_only(output_dir: tske.tping.PathType):
 	else:
 		try:
 			times = np.loadtxt(tfpath)
-			reactivities = np.loadtxt(rfpath)
-			powers = np.loadtxt(pfpath)
+			reactivities = np.loadtxt(rfpath).T
+			powers = np.loadtxt(pfpath).T
 			# if len(times) != len(reactivities) != len(powers)  -> handled in plotting
 			tske.plotter.plot_reactivity_and_power(times, reactivities, powers)
 		except Exception as e:
@@ -67,7 +67,7 @@ def plot_only(output_dir: tske.tping.PathType):
 	if le:
 		errstr = f"There were {le} errors:\n\t"
 		errstr += "\n\t".join(errs)
-		print(errs, sys.stderr)
+		print(errs, file=sys.stderr)
 	plt.show()
 	return le
 
@@ -110,7 +110,7 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		nt=num_steps,
 		dt=dt
 	)
-	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_arr)
+	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_arr.T)
 	uniform_node = _get_node(input_dict)
 	bcs = tuple(getattr(tske.analytic.BoundaryConditions, bc) for bc in input_dict[K.GEOM][K.NODE_BC])
 	matA, matB = tske.matrices.crank_nicolson(
