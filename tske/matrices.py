@@ -1,7 +1,7 @@
 """
 Matrices
 
-Matrix builders for Point Kinetics Equations
+Matrix builders for Spatial Kinetics Equations
 """
 
 import numpy as np
@@ -29,7 +29,7 @@ def __check_inputs(n, rho_vec, betas, lams):
 
 
 def __crank_precursors(
-		ijk, n, i, ndg, A, lams, betas, L, dt,
+		ijk, n, i, ndg, A, lams, betas, L, v1, dt,
 		explicit, implicit, cranknic
 ):
 	# Flux/power is at index 0
@@ -40,8 +40,8 @@ def __crank_precursors(
 		ic0 = ijk(n+0, i, k+1)  # i, n,   precursor k
 		ic1 = ijk(n+1, i, k+1)  # i, n+1, precursor k
 		# Delayed source in flux (TO flux, FROM precursors)
-		A[ixc1, ic0] = 0 if implicit else lams[k]
-		A[ixc1, ic1] = 0 if explicit else lams[k]
+		A[ixc1, ic0] = 0 if implicit else -lams[k]*v1
+		A[ixc1, ic1] = 0 if explicit else -lams[k]*v1
 		# Precursor source (TO precursors, FROM flux)
 		A[ic1, ixc0] = 0 if implicit else betas[k]/L
 		A[ic1, ixc1] = 0 if explicit else betas[k]/L
@@ -135,7 +135,7 @@ def crank_nicolson(
 	
 	for n in range(nt - 1):
 		def gen_precursors(i_x):
-			__crank_precursors(ijk=ijk, n=n, i=i_x, ndg=ndg, A=A, lams=lams, betas=betas, L=L, dt=dt,
+			__crank_precursors(ijk=ijk, n=n, i=i_x, ndg=ndg, A=A, lams=lams, betas=betas, v1=v1, L=L, dt=dt,
 			                   explicit=explicit, implicit=implicit, cranknic=cranknic)
 		# interior nodes
 		for i in range(1, nx - 1):
@@ -172,7 +172,7 @@ def crank_nicolson(
 		# Boundary conditions
 		# Forgive the copy-paste
 		
-		# West boundary condition (hardcoded dirichlet 0 for now)
+		# West boundary condition (hardcoded reflective for now)
 		iwc0 = ijk(n+0, 0, 0)
 		iwc1 = ijk(n+1, 0, 0)
 		iwr0 = ijk(n+0, 1, 0)
@@ -185,9 +185,8 @@ def crank_nicolson(
 		Dr0 = nodes[0, n+0].get_Dhat(nodes[1, n+0])/dx
 		Dr1 = nodes[0, n+1].get_Dhat(nodes[1, n+1])/dx
 		# West node
-		# FIXME: not exactly right but good enough for testing
-		n0_term = 0 if implicit else -2*Dr0 - sig_a0 + sig_f0
-		n1_term = 0 if explicit else -2*Dr1 - sig_a1 + sig_f1
+		n0_term = 0 if implicit else -Dr0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -Dr1 - sig_a1 + sig_f1
 		A[iwc1, iwc0] = +invdt + n0_term  # 0, n
 		A[iwc1, iwc1] = -invdt + n1_term  # 0, n+1
 		# Node 1 (right)
@@ -196,7 +195,7 @@ def crank_nicolson(
 		#
 		gen_precursors(i_x=0)
 		
-		# East boundary condition (hardcoded direchlet 0 for now)
+		# East boundary condition (hardcoded reflective for now)
 		X = nx - 1
 		iec0 = ijk(n+0, X-0, 0)
 		iec1 = ijk(n+1, X-0, 0)
@@ -210,14 +209,13 @@ def crank_nicolson(
 		Dl0 = nodes[X, n+0].get_Dhat(nodes[X-1, n+0])/dx
 		Dl1 = nodes[X, n+1].get_Dhat(nodes[X-1, n+1])/dx
 		# East node
-		# FIXME: not exactly right but good enough for testing
-		n0_term = 0 if implicit else -2*Dl0 - sig_a0 + sig_f0
-		n1_term = 0 if explicit else -2*Dl1 - sig_a1 + sig_f1
+		n0_term = 0 if implicit else -Dl0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -Dl1 - sig_a1 + sig_f1
 		A[iec1, iec0] = +invdt + n0_term  # X, n
 		A[iec1, iec1] = -invdt + n1_term  # X, n+1
 		# Node X-1 (left)
-		A[iec1, iel0] = Dl0 if implicit else 0
-		A[iec1, iel1] = Dl1 if explicit else 0
+		A[iec1, iel0] = 0 if implicit else Dl0
+		A[iec1, iel1] = 0 if explicit else Dl1
 		#
 		gen_precursors(i_x=X)
 		
