@@ -12,28 +12,34 @@ import scipy.linalg as la
 from tske.tping import T_arr
 
 
-def __split_results(vecX: T_arr, n: int):
+def __split_results(vecX: T_arr, nx: int, nt: int):
 	"""Split power and precusor concentration results
 	
 	Parameters:
 	----------
 	vecX: np.ndarray
 		1D array of the solution results
+		
+	nx: int
+		Number of spatial nodes
 	
-	n: int
+	nt: int
 		Number of timesteps
 	"""
+	n = nx*nt
 	ndg = len(vecX)//n - 1
-	P = vecX[:n]
-	C = vecX[n:].reshape((ndg, n))
-	return P, C
+	P = vecX[:n].reshape((nt, nx))
+	C = vecX[n:].reshape((ndg, nt, nx))
+	Clist = [C[k, ...] for k in range(ndg)]
+	return P, Clist
 
 
-def linalg(matA: T_arr, vecB: T_arr, n: int):
+def linalg(matA: T_arr, vecB: T_arr, nx: int, nt: int):
 	"""Solve using scipy
 	
 	Let M be the size of the matrix,
-	    n be the number of timesteps, and
+	    nt be the number of timesteps,
+	    nx be the number of spatial nodes, and
 	    ndg be the number of delayed groups
 	
 	Paramters:
@@ -44,26 +50,30 @@ def linalg(matA: T_arr, vecB: T_arr, n: int):
 	vecB: np.ndarray
 		[1 x M] vector of LHS
 	
-	n: int
+	nx: int
+		Number of spatial nodes
+	
+	nt: int
 		Number of timesteps
 	
 	Returns:
 	--------
 	P: np.ndarray
-		[1 x ndg] vector of powers
+		[nx x nt] vector of powers
 	
 	C: np.ndarray
 		[ndg x n] array of precursor group concentrations
 	"""
 	vecX = la.solve(matA, vecB)
-	return __split_results(vecX, n)
+	return __split_results(vecX, nx, nt)
 
 
-def inversion(matA, matB, n):
+def inversion(matA: T_arr, matB: T_arr, nx: int, nt: int):
 	"""Solve by matrix inversion.
 	
 	Let M be the size of the matrix,
-	    n be the number of timesteps, and
+	    nt be the number of timesteps,
+	    nx be the number of nodes, and
 	    ndg be the number of delayed groups
 	
 	Paramters:
@@ -74,7 +84,10 @@ def inversion(matA, matB, n):
 	vecB: np.ndarray
 		[1 x M] vector of LHS
 	
-	n: int
+	nx: int
+		Number of spatial nodes
+	
+	nt: int
 		Number of timesteps
 	
 	Returns:
@@ -87,4 +100,4 @@ def inversion(matA, matB, n):
 	"""
 	invA = la.inv(matA, overwrite_a=False)
 	vecX = invA.dot(matB)
-	return __split_results(vecX, n)
+	return __split_results(vecX, nx, nt)
