@@ -122,8 +122,8 @@ def crank_nicolson(
 	
 	def ijk(index_t: int, index_x: int, index_c: int) -> int:
 		"""convert 3 indices to 1 index"""
-		#return index_t + index_x*nt + index_c*nt*(ndg+1)
-		return index_t + index_x*nt + index_c*nt*nx
+		return index_x + index_t*nx + index_c*nt*nx
+		# return index_t + index_x*nt + index_c*nt*nx
 
 	A = np.zeros((size, size))
 	B = np.zeros(size)
