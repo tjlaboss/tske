@@ -6,18 +6,18 @@ time:
 
 data:
   #                  1
-  delay_fractions: [750]  # pcm
+  delay_fractions: [700]  # pcm
   decay_constants: [0.1]  # s^-1
   Lambda: 2.0e-5  # s
   materials:
-    # Material 0: Test
-    - sigma_a: 0.05
-      prompt_nu_sigma_f: 0.10
+    # Material 0: Rodded Fuel
+    - sigma_a: 0.10
+      prompt_nu_sigma_f: 0.1986821352878128
       diffusion_coefficient: 1.0
-    # Material 1: Test
+    # Material 1: Unrodded Fuel
     - sigma_a: 0.06
-      prompt_nu_sigma_f: 0.11
-      diffusion_coefficient: 1.1
+      prompt_nu_sigma_f: 0.1986821352878128
+      diffusion_coefficient: 1.5
 
 
 geometry:
@@ -25,9 +25,9 @@ geometry:
   nodes:
     - material: 0
       boundary_condition: "absorptive"
-    - material: 1
+    - material: 0
       swaps:
-        0.1: 0
+        0.1: 1
     - material: 0
       boundary_condition: "absorptive"
 
