@@ -28,7 +28,7 @@ class Node1D:
 		self.fill = fill
 		self.dx = dx
 		self.fission_source = self.nuSigmaF*self.dx
-		self.scatter_source = self.scatterMatrix*self.dx
+		self.scatter_source = None
 	
 	def _check_fill(self, fill):
 		assert fill.ngroups == self._ngroups, \
