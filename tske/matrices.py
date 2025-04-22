@@ -26,8 +26,9 @@ def __check_inputs(rho_arr, betas, lams, flux_vec, method):
 	assert len_beta == len_lams, \
 		(f"Number of delayed neutron fractions ({len_beta}) does not match"
 		 f"number of delayed neutron decay constants ({len_lams}).")
-	len_p = len(flux_vec)
-	assert len_p == n, f"Got {len_p} initial fluxes; expected {n}"
+	if flux_vec is not None:
+		len_p = len(flux_vec)
+		assert len_p == n, f"Got {len_p} initial fluxes; expected {n}"
 	assert method in range(len(Methods)), \
 		f"method {method} is not in [{int(min(Methods))}, {int(max(Methods))}]"
 
@@ -65,6 +66,7 @@ def crank_nicolson(
 		v1: float,
 		dx: float,
 		nodes: T_nodearr,
+		bcs: typing.Tuple[int, int],
 		P0: typing.Sequence[float],
 		method=Methods.cranknic
 ) -> typing.Tuple[T_arr, T_arr]:
@@ -93,6 +95,12 @@ def crank_nicolson(
 	
 	dx: float
 		Spatial mesh size (cm).
+
+	bcs: tuple of (int, int)
+		The (west, east) boundary conditions.
+	
+	P0: sequence of float
+		Starting flux. Must match first index of 'rhos'.
 	
 	nodes: (nx, nt) array of Node1D
 		Spatial nodes
@@ -130,6 +138,9 @@ def crank_nicolson(
 
 	A = np.zeros((size, size))
 	B = np.zeros(size)
+	
+	if P0 is None:
+		P0 = analytic.guess_flux(bcs[0], bcs[1], nx)
 	C0s = (P0*betas)/(lams*L)  # Initial precursor concentrations
 	
 	invdt = v1/dt

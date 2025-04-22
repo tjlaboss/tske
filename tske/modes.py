@@ -112,6 +112,7 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	)
 	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_arr)
 	uniform_node = _get_node(input_dict)
+	bcs = tuple(getattr(tske.analytic.BoundaryConditions, bc) for bc in input_dict[K.GEOM][K.NODE_BC])
 	matA, matB = tske.matrices.crank_nicolson(
 		method=method,
 		dt=dt,
@@ -121,7 +122,8 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		v1=input_dict[K.DATA][K.DATA_IV],
 		rhos=reactivity_arr.copy(),
 		node=uniform_node,
-		P0=None  # TODO
+		bcs=bcs,
+		P0=None
 	)
 	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_A), matA)
 	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_B), matB)
