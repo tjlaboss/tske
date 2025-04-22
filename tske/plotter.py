@@ -6,23 +6,19 @@ Plotting thingies
 import tske.keys as K
 from matplotlib import rcParams
 import matplotlib.pyplot as plt
-import typing
+from tske.tping import T_arr
 
 # This will make the y-labels not be so stupid.
 rcParams['axes.formatter.useoffset'] = False
-
-V_float = typing.Collection[float]
 
 COLOR_P = "forestgreen"
 COLOR_R = "firebrick"
 
 
-
-
 def plot_reactivity_and_power(
-		times: V_float,
-		reacts: V_float,
-		powers: V_float,
+		times: T_arr,
+		reacts: T_arr,
+		powers: T_arr,
 		plot_type=K.PLOT_LOG,
 		power_units=None,
 		title_text=""
@@ -34,11 +30,11 @@ def plot_reactivity_and_power(
 	times: collection of float
 		List of times (s)
 		
-	reacts: collection of float
-		List of reactivities ($)
+	reacts: ndarray of float
+		2D array (nx, nt) of reactivities ($)
 	
-	powers: collection of float
-		List of powers (power_units).
+	powers: ndarray of float
+		2D array (nx, nt) of powers/fluxes (power_units).
 	
 	plot_type: str, optional
 		Type of plot to make for power:
@@ -56,10 +52,12 @@ def plot_reactivity_and_power(
 		[Default: None]
 	"""
 	n = len(times)
-	len_p = len(powers)
-	len_r = len(reacts)
-	assert len_p == len_r == n, \
-		f"The number of times ({n}), powers ({len_p}), and reactivities ({len_r}) must be equal."
+	assert (powers.shape == reacts.shape,
+		f"The array of powers ({powers.shape}) must be "
+	    f"the same shape as the array of reactivities ({reacts.shape}")
+	nx, nt = powers.shape
+	assert nt == n, \
+		f"The number of times ({n}), powers ({nt}), and reactivities ({nt}) must be equal."
 	if power_units is None:
 		power_units = "Relative"
 	
@@ -92,7 +90,7 @@ def plot_reactivity_and_power(
 	plt.tight_layout()
 
 
-def plot_convergence(dts: V_float, errors: V_float, in_percent=False):
+def plot_convergence(dts: T_arr, errors: T_arr, in_percent=False):
 	"""Plot the convergence of a solution as a function of timestep size
 	
 	Parameters:
