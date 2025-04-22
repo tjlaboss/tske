@@ -35,7 +35,15 @@ class Material:
 		self._d = 0
 		self._sigma_a = 0
 		self._nu_sigma_f = 0
-
+	
+	@classmethod
+	def from_dict(cls, mdict):
+		m = cls()
+		m.sigma_a = mdict["sigma_a"]
+		m.nu_sigma_f = mdict["prompt_nu_sigma_f"]
+		m.d = mdict["diffusion_coefficient"]
+		return m
+	
 	@property
 	def d(self):
 		return self._d
