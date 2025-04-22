@@ -8,6 +8,7 @@ from tske.material import Material
 from tske.node import Node1D
 import tske.keys
 import tske.tping
+import tske.analytic
 import tske.modes
 import tske.actions
 import tske.arguments

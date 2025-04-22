@@ -7,7 +7,7 @@ Matrix builders for Spatial Kinetics Equations
 import numpy as np
 import typing
 import enum
-from tske import keys
+from tske import keys, analytic, Node1D
 from tske.tping import T_arr, T_nodearr
 
 
