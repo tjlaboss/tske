@@ -72,6 +72,14 @@ def plot_only(output_dir: tske.tping.PathType):
 	return le
 
 
+def _get_node(input_dict: typing.Mapping) -> tske.Node1D:
+	gdict = input_dict[K.GEOM]
+	m_id = gdict[K.NODE_MATERIAL]
+	mat = tske.Material.from_dict(input_dict[K.DATA][K.MATERIALS][m_id])
+	delta_x = gdict[K.GEOM_TOTAL] / gdict[K.GEOM_NX]
+	node = tske.Node1D(ngroups=1, fill=mat, dx=delta_x)
+	return node
+
 def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""Solve the Spatial Kinetics Reactor Equations
 	
@@ -90,27 +98,30 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""
 	plots = input_dict.get(K.PLOT, {})
 	method = tske.matrices.METHODS[input_dict[K.METH]]
+	nx = input_dict[K.GEOM][K.GEOM_NX]
 	total = input_dict[K.TIME][K.TIME_TOTAL]
 	dt = input_dict[K.TIME][K.TIME_DELTA]
 	num_steps = int(np.ceil(total/dt))  # Will raise total if not divisible
 	times = np.linspace(0, num_steps*dt, num_steps)
 	np.savetxt(os.path.join(output_dir, K.FNAME_TIME), times)
-	rxdict = dict(input_dict[K.REAC])
-	rxtype = rxdict.pop(K.REAC_TYPE)
-	reactivity_vals = tske.reactivity.get_reactivity_vector(
-		r_type=rxtype,
-		n=num_steps,
-		dt=dt,
-		**rxdict
+	reactivity_arr = tske.reactivity.get_reactivity_array(
+		rxlist=input_dict[K.REAC],
+		nx=nx,
+		nt=num_steps,
+		dt=dt
 	)
-	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_vals)
-	matA, matB = method(
-		n=num_steps,
+	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_arr)
+	uniform_node = _get_node(input_dict)
+	matA, matB = tske.matrices.crank_nicolson(
+		method=method,
 		dt=dt,
 		betas=input_dict[K.DATA][K.DATA_B],
 		lams=input_dict[K.DATA][K.DATA_L],
 		L=input_dict[K.DATA][K.DATA_BIG_L],
-		rho_vec=reactivity_vals.copy()
+		v1=input_dict[K.DATA][K.DATA_IV],
+		rhos=reactivity_arr.copy(),
+		node=uniform_node,
+		P0=None  # TODO
 	)
 	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_A), matA)
 	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_B), matB)
