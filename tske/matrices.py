@@ -399,8 +399,10 @@ def explicit_euler(
 
 
 METHODS = {
-	key: implicit_euler for key in keys.IMPLICIT_NAMES
+	key: Methods.implicit for key in keys.IMPLICIT_NAMES
 } | {
-	key: explicit_euler for key in keys.EXPLICIT_NAMES
+	key: Methods.explicit for key in keys.EXPLICIT_NAMES
+} | {
+	key: Methods.cranknic for key in keys.CRANKNIC_NAMES
 }
 

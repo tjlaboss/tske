@@ -6,6 +6,7 @@ Hardcoding is bad. Use these constants instead.
 
 IMPLICIT_NAMES = ("implicit euler", "implicit", "backward euler", "backward")
 EXPLICIT_NAMES = ("explicit euler", "explicit", "forward euler", "forward")
+CRANKNIC_NAMES = ("crank-nicolson", "cranknic", "crank", "nicolson")
 METH = "method"
 
 # Reactivity functions
