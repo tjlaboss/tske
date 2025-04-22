@@ -3,10 +3,12 @@ Plotter
 
 Plotting thingies
 """
-import tske.keys as K
-from matplotlib import rcParams
-import matplotlib.pyplot as plt
 from tske.tping import T_arr
+from matplotlib import rcParams
+from mpl_toolkits import mplot3d
+import matplotlib.pyplot as plt
+import numpy as np
+
 
 # This will make the y-labels not be so stupid.
 rcParams['axes.formatter.useoffset'] = False
@@ -19,11 +21,9 @@ def plot_reactivity_and_power(
 		times: T_arr,
 		reacts: T_arr,
 		powers: T_arr,
-		plot_type=K.PLOT_LOG,
-		power_units=None,
 		title_text=""
 ):
-	f"""Plot the reactor power and reactivity vs. time
+	"""Plot the reactor power and reactivity vs. time
 	
 	Parameters:
 	-----------
@@ -36,55 +36,48 @@ def plot_reactivity_and_power(
 	powers: ndarray of float
 		2D array (nx, nt) of powers/fluxes (power_units).
 	
-	plot_type: str, optional
-		Type of plot to make for power:
-			{K.PLOT_LINEAR}: linear-linear
-			{K.PLOT_SEMLOG}: log-linear (semilog-y)
-			{K.PLOT_LOGLOG}: log-log
-		[Default: {K.PLOT_LOGLOG}.]
-	
-	power_units: str, optional
-		Units to show for the y-axis for power.
-		[Default: None --> relative power]
-	
 	title_text: str, optional
 		Title for the plot.
 		[Default: None]
 	"""
-	n = len(times)
-	assert (powers.shape == reacts.shape,
-		f"The array of powers ({powers.shape}) must be "
-	    f"the same shape as the array of reactivities ({reacts.shape}")
+	assert powers.shape == reacts.shape, \
+		f"The array of powers ({powers.shape}) must be " \
+	    f"the same shape as the array of reactivities ({reacts.shape}"
 	nx, nt = powers.shape
-	assert nt == n, \
-		f"The number of times ({n}), powers ({nt}), and reactivities ({nt}) must be equal."
-	if power_units is None:
-		power_units = "Relative"
+	assert nt == len(times), \
+		f"The number of times ({len(times)}), powers ({nt}), and reactivities ({nt}) must be equal."
 	
 	# Plot power
-	fig, pax = plt.subplots()
-	plot_functions = {
-		K.PLOT_LINEAR: pax.plot,
-		K.PLOT_SEMLOG: pax.semilogy,
-		K.PLOT_LOGLOG: pax.loglog
-	}
-	plot_f = plot_functions.get(plot_type, pax.loglog)
-	plines = plot_f(times, powers, "-", color=COLOR_P, label=r"$P(t)$")
-	pax.tick_params(axis="y", which="both", labelcolor=COLOR_P)
-	pax.set_ylabel(f"Power ({power_units})", color=COLOR_P)
+	fig = plt.figure(figsize=[11,5])
+	pax = fig.add_subplot(121, projection='3d')
+	rax = fig.add_subplot(122, projection='3d')
+	X, Y = np.meshgrid(np.arange(nx), times)
+	P = powers.T
+	pax.plot_surface(
+		X, Y, P, edgecolor=COLOR_P, color=COLOR_P,
+		alpha=0.3
+	)
+	pzlims = (0.9*powers.min(), 1.1*powers.max())
+	pax.set(
+		xlim=(0, nx-1),         xlabel="x-node",
+		ylim=(0, max(times)),   ylabel="time (s)",
+		zlim=pzlims,            zlabel="Power"
+    )
 	
 	# Plot reactivity
-	rax = pax.twinx()
-	rlines = rax.plot(times, reacts, "--", color=COLOR_R, label=r"$\rho(t)$")
-	rax.tick_params(axis="y", labelcolor=COLOR_R)
-	rax.set_ylabel("Reactivity (\$)", color=COLOR_R)
+	rax.plot_surface(
+		X, Y, reacts.T, edgecolor=COLOR_R, color=COLOR_R,
+		alpha=0.3
+	)
+	rzlims = (0.9*reacts.min(), 1.1*reacts.max())
+	rax.set(
+		xlim=(0, nx-1),         xlabel="x-node",
+		ylim=(0, max(times)),   ylabel="time (s)",
+		zlim=rzlims,            zlabel=r"Reactivity (\$)"
+	)
 	
-	lines = plines + rlines
-	pax.legend(lines, [l.get_label() for l in lines], loc=0)
-	pax.set_xlim([0, max(times)])
-	pax.set_xlabel("Time (s)")
-	
-	# continue...
+	# Finish up.
+	fig.tight_layout()
 	if title_text:
 		plt.suptitle(title_text)
 	plt.tight_layout()

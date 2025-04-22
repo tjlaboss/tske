@@ -144,7 +144,6 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 			times=times,
 			reacts=reactivity_arr,
 			powers=power_vals,
-			plot_type=plots.get(K.PLOT_LOG)
 		)
 		plt.savefig(os.path.join(output_dir, K.FNAME_PR))
 	elif prplot == 2:
