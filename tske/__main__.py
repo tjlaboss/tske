@@ -1,5 +1,5 @@
 """
-Travis's Point Kinetics Equations
+Travis's Spatial Kinetics Equations
 """
 import tske
 import tske.keys as K
