@@ -42,6 +42,7 @@ DATA = "data"
 DATA_B = "delay_fractions"
 DATA_L = "decay_constants"
 DATA_BIG_L = "Lambda"
+DATA_IV = "ivelocity"
 
 # Diffusion data
 # Cross sections

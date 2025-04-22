@@ -9,6 +9,7 @@ data:
   delay_fractions: [700]  # pcm
   decay_constants: [0.1]  # s^-1
   Lambda: 2.0e-5  # s
+  ivelocity: 2.0e-6
   materials:
     # Material 0: Rodded Fuel
     - sigma_a: 0.10

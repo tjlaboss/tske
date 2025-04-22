@@ -44,6 +44,7 @@ data_type:
   {DATA_B}: list(num(min=0))
   {DATA_L}: list(num(min=0))
   {DATA_BIG_L}: num(min=0)
+  {DATA_IV}: num(min=0)
   {MATERIALS}: list(include('material_type'))
 ---
 material_type:
