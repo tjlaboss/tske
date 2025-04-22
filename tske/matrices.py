@@ -17,15 +17,19 @@ class Methods(enum.IntEnum):
 	cranknic = 2
 
 
-def __check_inputs(n, rho_vec, betas, lams):
+def __check_inputs(rho_arr, betas, lams, flux_vec, method):
 	"""Check the lenghts of inputs for matrix builders."""
-	len_rho = len(rho_vec)
-	assert len_rho == n, f"Expected {n} reactivities; got {len_rho}."
+	assert rho_arr.ndim == 2, f"rho(x,t) must be 2 dimensions."
+	n = rho_arr.shape[0]
 	len_beta = len(betas)
 	len_lams = len(lams)
 	assert len_beta == len_lams, \
 		(f"Number of delayed neutron fractions ({len_beta}) does not match"
 		 f"number of delayed neutron decay constants ({len_lams}).")
+	len_p = len(flux_vec)
+	assert len_p == n, f"Got {len_p} initial fluxes; expected {n}"
+	assert method in range(len(Methods)), \
+		f"method {method} is not in [{int(min(Methods))}, {int(max(Methods))}]"
 
 
 def __crank_precursors(
@@ -66,7 +70,8 @@ def crank_nicolson(
 ) -> typing.Tuple[T_arr, T_arr]:
 	"""Build A and B matrices using Crank-Nicolson.
 	
-	Crank-Nicolson = 1/2 implicit + 1/2 Explicit
+	Crank-Nicolson = 1/2 implicit + 1/2 explicit
+	Therefore, this function can build all 3 types.
 	
 	
 	Parameters:
@@ -75,10 +80,10 @@ def crank_nicolson(
 		Timestep size (s).
 	
 	betas: np.ndarray(float)
-		Array of delayed neutron precursor fission yields.
+		1-D Array of delayed neutron precursor fission yields.
 	
 	lams: np.ndarray(float)
-		Array of delayed neutron precursor decay constants (s^-1).
+		1-D Array of delayed neutron precursor decay constants (s^-1).
 	
 	L: float
 		Prompt neutron lifetime (s).
@@ -92,13 +97,12 @@ def crank_nicolson(
 	nodes: (nx, nt) array of Node1D
 		Spatial nodes
 		
-	P0: sequence of float
-		Starting flux. Must match len(nodes).
-	
-	method: int
-		0 = explicit Euler
-		1 = implicit Euler
-		2 = Crank-Nicolson
+	method: int, optional
+		Numerical scheme for time differential:
+			0 = explicit Euler
+			1 = implicit Euler
+			2 = Crank-Nicolson
+		[default: 2]
 	
 	Returns:
 	--------
@@ -113,7 +117,7 @@ def crank_nicolson(
 	implicit = (method == Methods.implicit)
 	cranknic = (method == Methods.cranknic)
 	
-	# __check_inputs(n, rho_vec, betas, lams)
+	# __check_inputs(rhos, betas, lams, P0, method)
 	ndg = len(betas)	# number of delayed groups
 	beff = sum(betas)   # beta effective
 
@@ -123,7 +127,6 @@ def crank_nicolson(
 	def ijk(index_t: int, index_x: int, index_c: int) -> int:
 		"""convert 3 indices to 1 index"""
 		return index_x + index_t*nx + index_c*nt*nx
-		# return index_t + index_x*nt + index_c*nt*nx
 
 	A = np.zeros((size, size))
 	B = np.zeros(size)
@@ -209,8 +212,8 @@ def crank_nicolson(
 		Dl0 = nodes[X, n+0].get_Dhat(nodes[X-1, n+0])/dx
 		Dl1 = nodes[X, n+1].get_Dhat(nodes[X-1, n+1])/dx
 		# East node
-		n0_term = 0 if implicit else -Dl0 - sig_a0 + sig_f0
-		n1_term = 0 if explicit else -Dl1 - sig_a1 + sig_f1
+		n0_term = 0 if implicit else -2*Dl0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -2*Dl1 - sig_a1 + sig_f1
 		A[iec1, iec0] = +invdt + n0_term  # X, n
 		A[iec1, iec1] = -invdt + n1_term  # X, n+1
 		# Node X-1 (left)
