@@ -199,8 +199,9 @@ def crank_nicolson(
 		Dr0 = nodes[0, n+0].get_Dhat(nodes[1, n+0])/dx
 		Dr1 = nodes[0, n+1].get_Dhat(nodes[1, n+1])/dx
 		# West node
-		n0_term = 0 if implicit else -Dr0 - sig_a0 + sig_f0
-		n1_term = 0 if explicit else -Dr1 - sig_a1 + sig_f1
+		bc_w = analytic.BoundaryConditions(bcs[0])
+		n0_term = 0 if implicit else -bc_w*Dr0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -bc_w*Dr1 - sig_a1 + sig_f1
 		A[iwc1, iwc0] = +invdt + n0_term  # 0, n
 		A[iwc1, iwc1] = -invdt + n1_term  # 0, n+1
 		# Node 1 (right)
@@ -209,7 +210,7 @@ def crank_nicolson(
 		#
 		gen_precursors(i_x=0)
 		
-		# East boundary condition (hardcoded reflective for now)
+		# East boundary condition
 		X = nx - 1
 		iec0 = ijk(n+0, X-0, 0)
 		iec1 = ijk(n+1, X-0, 0)
@@ -223,8 +224,9 @@ def crank_nicolson(
 		Dl0 = nodes[X, n+0].get_Dhat(nodes[X-1, n+0])/dx
 		Dl1 = nodes[X, n+1].get_Dhat(nodes[X-1, n+1])/dx
 		# East node
-		n0_term = 0 if implicit else -2*Dl0 - sig_a0 + sig_f0
-		n1_term = 0 if explicit else -2*Dl1 - sig_a1 + sig_f1
+		bc_e = analytic.BoundaryConditions(bcs[1])
+		n0_term = 0 if implicit else -bc_e*Dl0 - sig_a0 + sig_f0
+		n1_term = 0 if explicit else -bc_e*Dl1 - sig_a1 + sig_f1
 		A[iec1, iec0] = +invdt + n0_term  # X, n
 		A[iec1, iec1] = -invdt + n1_term  # X, n+1
 		# Node X-1 (left)
