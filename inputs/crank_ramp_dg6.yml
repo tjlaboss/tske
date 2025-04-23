@@ -1,0 +1,45 @@
+# Crank-Nicolson, uniform reactivity ramp
+
+time:
+  total: 2.0  # s
+  dt: 6.0e-3  # s
+
+data:
+  #                     1       2      3      4     5     6
+  delay_fractions: [  21.5,  142.4, 127.4, 256.8, 74.8, 27.3]  # pcm
+  decay_constants: [0.0124, 0.0305, 0.111, 0.301, 1.14, 3.01]  # s^-1
+  Lambda: 2.0e-5  # s
+  ivelocity: 2.0e-6
+  materials:
+    # Material 0: Rodded Fuel (Critical, absorptive)
+    - sigma_a: 0.10
+      prompt_nu_sigma_f: 0.1986821352878128
+      diffusion_coefficient: 1.0
+    # Material 1: Rodded Fuel (Critical, reflective)
+    - sigma_a: 0.10
+      prompt_nu_sigma_f: 0.10
+      diffusion_coefficient: 1.0
+    # Material 2: Unrodded Fuel
+    - sigma_a: 0.06
+      prompt_nu_sigma_f: 0.1986821352878128
+      diffusion_coefficient: 1.5
+
+
+geometry:
+  total: 10.0
+  nx: 4
+  material: 1
+  boundary_conditions: ["reflective", "reflective"]
+
+reactivity:
+  - type: ramp
+    rho:   0.5  # $
+    slope: 0.5 # will reach peak in 1 second
+    nodes: [0, 1, 2, 3]
+
+method: "crank-nicolson"
+
+plots:
+  show: 1  # 0=no, 1=at end, 2=immediately
+  spy: 0
+  power_reactivity: 1
