@@ -4,7 +4,7 @@ Plotter
 Plotting thingies
 """
 from tske.tping import T_arr
-from matplotlib import rcParams
+from matplotlib import rcParams, cm
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import numpy as np
@@ -142,7 +142,9 @@ def plot_3d_power(
 	X, Y = np.meshgrid(xvals, times)
 	P = powers.T
 	pax1.plot_surface(
-		X, Y, P, edgecolor=COLOR_P, color=COLOR_P,
+		X, Y, P,
+		edgecolor=COLOR_P, # color=COLOR_P,
+		cmap=cm.coolwarm,
 		alpha=0.3
 	)
 	pzlims = (powers.min(), 1.05*powers.max())
@@ -164,8 +166,9 @@ def plot_3d_power(
 		pax2.set_xlabel("x (cm)")
 		pax2.set_xlim([0, XL])
 		pax2.set_ylabel(r"$\phi(x)$")
-		pax2.set_ylim(pzlims)
-		pax2.grid()
+	pzlims = (powers[:,time_indices].min(), 1.05*powers[:,time_indices].max())
+	pax2.set_ylim(pzlims)
+	pax2.grid()
 	pax2.legend()
 	
 	# Finish up.
