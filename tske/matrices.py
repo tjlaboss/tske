@@ -45,8 +45,8 @@ def __crank_precursors(
 		ic0 = ijk(n+0, i, k+1)  # i, n,   precursor k
 		ic1 = ijk(n+1, i, k+1)  # i, n+1, precursor k
 		# Delayed source in flux (TO flux, FROM precursors)
-		A[ixc1, ic0] = 0 if implicit else -lams[k]*v1
-		A[ixc1, ic1] = 0 if explicit else -lams[k]*v1
+		A[ixc1, ic0] = 0 if implicit else lams[k]*v1
+		A[ixc1, ic1] = 0 if explicit else lams[k]*v1
 		# Precursor source (TO precursors, FROM flux)
 		A[ic1, ixc0] = 0 if implicit else betas[k]/L
 		A[ic1, ixc1] = 0 if explicit else betas[k]/L
