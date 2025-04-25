@@ -68,6 +68,7 @@ BC_TYPES = (BC_ZERO, BC_VACUUM, BC_MIRROR)
 EXT = ".pdf"  # consider making this user-configurable
 FNAME_SPY = "spy" + EXT
 FNAME_PR = "power_reactivity" + EXT
+FNAME_FLUX = "flux" + EXT
 FNAME_CONVERGE = "timestep_study" + EXT
 
 # Text names

@@ -62,7 +62,7 @@ def plot_only(output_dir: tske.tping.PathType):
 		except Exception as e:
 			errs.append(f"Failed to plot power and reactivity: {type(e)}: {e}")
 		else:
-			plt.savefig(K.FNAME_PR)
+			plt.savefig(K.FNAME_FLUX)
 			print("Power and reactivity plot saved to:", K.FNAME_PR)
 	le = len(errs)
 	if le:
@@ -127,6 +127,7 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	np.savetxt(os.path.join(output_dir, K.FNAME_TIME), times)
 	dx = input_dict[K.GEOM][K.GEOM_DX]
 	nodelist = input_dict[K.GEOM][K.NODES]
+	nx = len(nodelist)
 	materials = [tske.Material.from_dict(m) for m in input_dict[K.DATA][K.MATERIALS]]
 	nodes = _build_node_array(nodelist, materials, times, dx)
 	bcs = []
@@ -160,9 +161,8 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		np.savetxt(fpath, concentration_vals.T)
 	prplot = plots.get(K.PLOT_PR)
 	if prplot == 1:
-		tske.plotter.plot_reactivity_and_power(
+		tske.plotter.plot_3d_power(
 			times=times,
-			reacts=reactivity_arr,
 			powers=power_vals,
 		)
 		plt.savefig(os.path.join(output_dir, K.FNAME_PR))

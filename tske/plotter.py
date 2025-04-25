@@ -83,6 +83,46 @@ def plot_reactivity_and_power(
 	plt.tight_layout()
 
 
+def plot_3d_power(
+		times: T_arr,
+		powers: T_arr,
+):
+	"""Plot the reactor power and reactivity vs. time
+	
+	Parameters:
+	-----------
+	times: collection of float
+		List of times (s)
+		
+	powers: ndarray of float
+		2D array (nx, nt) of powers/fluxes (power_units).
+	
+	"""
+	nx, nt = powers.shape
+	assert nt == len(times), \
+		f"The number of times ({len(times)}), powers ({nt}), and reactivities ({nt}) must be equal."
+	times *= 1e3
+	
+	# Plot power
+	fig = plt.figure()
+	pax = fig.add_subplot(111, projection='3d')
+	X, Y = np.meshgrid(np.arange(nx), times)
+	P = powers.T
+	pax.plot_surface(
+		X, Y, P, edgecolor=COLOR_P, color=COLOR_P,
+		alpha=0.3
+	)
+	pzlims = (0.9*powers.min(), 1.1*powers.max())
+	pax.set(
+		xlim=(0, nx-1),         xlabel="x-node",
+		ylim=(0, max(times)),   ylabel="time (ms)",
+		zlim=pzlims,            zlabel="Power"
+    )
+	
+	# Finish up.
+	fig.tight_layout()
+
+
 def plot_convergence(dts: T_arr, errors: T_arr, in_percent=False):
 	"""Plot the convergence of a solution as a function of timestep size
 	
