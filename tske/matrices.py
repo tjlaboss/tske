@@ -143,9 +143,9 @@ def crank_nicolson(
 	if P0 is None:
 		P0 = analytic.guess_flux(bcs[0], bcs[1], nx)
 	# Initial precursor concentrations
-	C0s = np.zeros(nx*ndg)
+	C0s = np.zeros((nx, ndg))
 	for k in range(ndg):
-		C0s[k*nx:(k+1)*nx] = (P0*betas[k])/(lams[k]*L)
+		C0s[:, k] = (P0*betas[k])/(lams[k]*L)
 	
 	invdt = v1/dt
 	if cranknic:
@@ -247,7 +247,7 @@ def crank_nicolson(
 		for k in range(ndg):
 			ik0 = ijk(0, i, k+1)
 			A[ik0, ik0] = 1
-			B[ik0] = C0s[k]
+			B[ik0] = C0s[i, k]
 				
 	return A, B
 
