@@ -6,7 +6,6 @@ import tske.keys as K
 import os
 import shutil
 import numpy as np
-import time
 
 np.set_printoptions(legacy='1.25', linewidth=np.inf)
 
@@ -36,11 +35,7 @@ def main():
 		print("Starting timestep study.")
 		return tske.modes.study_timesteps(input_dict, args.output_dir, dts)
 	# Otherwise, run normally.
-	tick = time.time()
-	print("Solving...")
 	tske.modes.solution(input_dict, args.output_dir)
-	tock = time.time()
-	print(f"...Completed in {tock - tick:.2f} seconds. Outputs saved to: {args.output_dir}.")
 	return 0
 
 
