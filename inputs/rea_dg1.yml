@@ -41,11 +41,6 @@ geometry:
       boundary_condition: "absorptive"
 
 
-reactivity:
-  type: step
-  rho: 0.0  # null transient
-
-
 method: "crank-nicolson"
 
 
