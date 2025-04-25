@@ -139,9 +139,12 @@ def plot_3d_power(
 	
 	times *= 1e3
 	
+	FS = [5,4]
 	# Plot power 3D
-	fig = plt.figure(figsize=[10,5])
-	pax1 = fig.add_subplot(121, projection='3d')
+	# fig = plt.figure(figsize=[9,4])
+	# pax1 = fig.add_subplot(121, projection='3d')
+	fig1 = plt.figure(1, figsize=FS)
+	pax1 = fig1.add_subplot(111, projection='3d')
 	X, Y = np.meshgrid(xvals, times)
 	P = powers.T
 	pax1.plot_surface(
@@ -152,30 +155,41 @@ def plot_3d_power(
 	)
 	pzlims = (powers.min(), 1.05*powers.max())
 	pax1.set(
-		xlim=(0, XL),         xlabel="x-node",
+		xlim=(0, XL),           xlabel="x (cm)",
 		ylim=(0, max(times)),   ylabel="time (ms)",
-		zlim=pzlims,            zlabel="Power"
+		zlim=pzlims,            zlabel=r"$\phi(x,t)$"
     )
+	pax1.zaxis.set_label_position("lower")
+	pax1.zaxis.labelpad=-12
+	# fig1.tight_layout()
+	plt.savefig(os.path.join(output_dir, K.FNAME_FLUX3))
 	
 	# Make 2D plot too
-	pax2 = fig.add_subplot(122)
+	# pax2 = fig.add_subplot(122)
+	fig2 = plt.figure(2, figsize=FS)
+	pax2 = fig2.add_subplot(111)
 	time_indices = []
 	# for t in np.ceil(np.logspace(0, np.log(nt - 1), 5, base=np.e)):
 	for t in np.ceil(np.linspace(0, nt - 1, 5)):
 		time_indices.append(int(t))
 	for t in time_indices:
 		lbl = fr"t = {times[t]:.0f} ms"
-		pax2.plot(xvals, powers[:, t], "-", label=lbl)
+		pax2.semilogy(xvals, powers[:, t], "-", label=lbl)
 		pax2.set_xlabel("x (cm)")
 		pax2.set_xlim([0, XL])
-		pax2.set_ylabel(r"$\phi(x)$")
+		pax2.set_ylabel(r"$\phi(x,t)$")
+		pax2.yaxis.set_label_position("right")
+		pax2.yaxis.tick_right()
+		# pax2.yticks.set_position("right")
 	pzlims = (powers[:,time_indices].min(), 1.05*powers[:,time_indices].max())
 	pax2.set_ylim(pzlims)
 	pax2.grid()
 	pax2.legend()
+	fig2.tight_layout()
+	plt.savefig(os.path.join(output_dir, K.FNAME_FLUX2))
 	
 	# Finish up.
-	fig.tight_layout()
+	# plt.tight_layout()
 
 
 def plot_convergence(dts: T_arr, errors: T_arr, in_percent=False):
