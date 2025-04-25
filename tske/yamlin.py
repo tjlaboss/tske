@@ -33,7 +33,6 @@ SCHEMA = f"""\
 {DATA}: include('data_type')
 {GEOM}: include('geometry_type')
 {PLOT}: include('plot_type', required=False)
-{REAC}: any(include('step_type'), include('ramp_type'), include('sine_type'))
 {METH}: {_enum(METHODS.keys(), ignore_case=True)}
 ---
 time_type:
@@ -66,20 +65,6 @@ plot_type:
   {PLOT_SPY}: int(min=0, max=1, required=False)
   {PLOT_PR}: int(min=0, max=2, required=False)
   {PLOT_LOG}: {_enum(PLOT_TYPES, ignore_case=True, required=False)}
----
-step_type:
-  {REAC_TYPE}: str(equals="{STEP}", ignore_case=True)
-  {RHO}: num()
----
-ramp_type:
-  {REAC_TYPE}: str(equals="{RAMP}", ignore_case=True)
-  {RHO}: num()
-  {RAMP_SLOPE}: num()
----
-sine_type:
-  {REAC_TYPE}: str(equals="{SINE}", ignore_case=True)
-  {RHO}: num()
-  {SINE_OMEGA}: num(min=0)
 """
 
 yamale_schema = yamale.make_schema(content=SCHEMA, parser=PARSER)
@@ -108,7 +93,6 @@ def load_input_file(fpath: PathType) -> typing.MutableMapping:
 	# Let's make these arrays for later.
 	ydict[DATA][DATA_B] = np.array(ydict[DATA][DATA_B])*1e-5
 	ydict[DATA][DATA_L] = np.array(ydict[DATA][DATA_L])
-	ydict[REAC][RHO] = float(ydict[REAC][RHO])
 	return ydict
 
 
@@ -119,9 +103,6 @@ def check_input(config: typing.Mapping):
 		errs.append("Number of delayed fractions does not match number of decay constants.")
 	if config[TIME][TIME_TOTAL] < config[TIME][TIME_DELTA]:
 		errs.append("Total time is less than timestep size.")
-	rx = config[REAC]
-	if rx[REAC_TYPE] == RAMP and np.sign(rx[RHO]) != np.sign(rx[RAMP_SLOPE]):
-		errs.append("Reactivity inserted and insertion ramp slope have different signs.")
 	max_mat = len(config[DATA][MATERIALS]) - 1
 	num_nodes = len(config[GEOM][NODES])
 	if num_nodes < 3:
