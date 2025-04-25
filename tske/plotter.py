@@ -154,8 +154,9 @@ def plot_3d_power(
 	
 	# Make 2D plot too
 	pax2 = fig.add_subplot(122)
-	time_indices = [0]
-	for t in np.ceil(np.logspace(0, np.log(nt - 1), 5, base=np.e)):
+	time_indices = []
+	# for t in np.ceil(np.logspace(0, np.log(nt - 1), 5, base=np.e)):
+	for t in np.ceil(np.linspace(0, nt - 1, 5)):
 		time_indices.append(int(t))
 	for t in time_indices:
 		lbl = fr"t = {times[t]:.0f} ms"
@@ -164,6 +165,7 @@ def plot_3d_power(
 		pax2.set_xlim([0, XL])
 		pax2.set_ylabel(r"$\phi(x)$")
 		pax2.set_ylim(pzlims)
+		pax2.grid()
 	pax2.legend()
 	
 	# Finish up.
