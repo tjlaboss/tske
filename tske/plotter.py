@@ -115,6 +115,7 @@ def plot_reactivity_and_power(
 def plot_3d_power(
 		times: T_arr,
 		powers: T_arr,
+		dx=2,
 ):
 	"""Plot the reactor power and reactivity vs. time
 	
@@ -130,23 +131,40 @@ def plot_3d_power(
 	nx, nt = powers.shape
 	assert nt == len(times), \
 		f"The number of times ({len(times)}), powers ({nt}), and reactivities ({nt}) must be equal."
+	xvals = np.arange(nx)*dx
+	XL = (nx-1)*dx
+	
 	times *= 1e3
 	
-	# Plot power
-	fig = plt.figure()
-	pax = fig.add_subplot(111, projection='3d')
-	X, Y = np.meshgrid(np.arange(nx), times)
+	# Plot power 3D
+	fig = plt.figure(figsize=[10,5])
+	pax1 = fig.add_subplot(121, projection='3d')
+	X, Y = np.meshgrid(xvals, times)
 	P = powers.T
-	pax.plot_surface(
+	pax1.plot_surface(
 		X, Y, P, edgecolor=COLOR_P, color=COLOR_P,
 		alpha=0.3
 	)
-	pzlims = (0.9*powers.min(), 1.1*powers.max())
-	pax.set(
-		xlim=(0, nx-1),         xlabel="x-node",
+	pzlims = (powers.min(), 1.05*powers.max())
+	pax1.set(
+		xlim=(0, XL),         xlabel="x-node",
 		ylim=(0, max(times)),   ylabel="time (ms)",
 		zlim=pzlims,            zlabel="Power"
     )
+	
+	# Make 2D plot too
+	pax2 = fig.add_subplot(122)
+	time_indices = [0]
+	for t in np.ceil(np.logspace(0, np.log(nt - 1), 5, base=np.e)):
+		time_indices.append(int(t))
+	for t in time_indices:
+		lbl = fr"t = {times[t]:.0f} ms"
+		pax2.plot(xvals, powers[:, t], "-", label=lbl)
+		pax2.set_xlabel("x (cm)")
+		pax2.set_xlim([0, XL])
+		pax2.set_ylabel(r"$\phi(x)$")
+		pax2.set_ylim(pzlims)
+	pax2.legend()
 	
 	# Finish up.
 	fig.tight_layout()
