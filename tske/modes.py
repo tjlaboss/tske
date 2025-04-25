@@ -5,6 +5,7 @@ Run modes for TSKE
 """
 import os
 import sys
+import copy
 import typing
 import warnings
 import numpy as np
@@ -80,6 +81,27 @@ def _get_node(input_dict: typing.Mapping) -> tske.Node1D:
 	node = tske.Node1D(ngroups=1, fill=mat, dx=delta_x)
 	return node
 
+def _build_node_array(nodelist, materials, times, dx):
+	nx = len(nodelist)
+	nt = len(times)
+	nodearr = np.empty((nx, nt), dtype=tske.Node1D)
+	for i, ndict in enumerate(nodelist):
+		imat = materials[ndict[K.NODE_MATERIAL]]
+		node = tske.Node1D(1, imat, dx)
+		swaps = ndict.get(K.NODE_SWAPS)
+		nodearr[i, :] = node
+		if not swaps:
+			continue
+		for swaptime, swapmat in sorted(swaps.items()):
+			newnode = copy.copy(node)  # or deepcopy()?
+			newnode.fill = materials[swapmat]
+			for n, t in enumerate(times):
+				if t > swaptime:
+					nodearr[i, n:] = newnode
+					break
+	return nodearr
+	
+
 def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""Solve the Spatial Kinetics Reactor Equations
 	
@@ -98,30 +120,28 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""
 	plots = input_dict.get(K.PLOT, {})
 	method = tske.matrices.METHODS[input_dict[K.METH]]
-	nx = input_dict[K.GEOM][K.GEOM_NX]
 	total = input_dict[K.TIME][K.TIME_TOTAL]
 	dt = input_dict[K.TIME][K.TIME_DELTA]
 	num_steps = int(np.ceil(total/dt))  # Will raise total if not divisible
 	times = np.linspace(0, num_steps*dt, num_steps)
 	np.savetxt(os.path.join(output_dir, K.FNAME_TIME), times)
-	reactivity_arr = tske.reactivity.get_reactivity_array(
-		rxlist=input_dict[K.REAC],
-		nx=nx,
-		nt=num_steps,
-		dt=dt
-	)
-	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivity_arr.T)
-	uniform_node = _get_node(input_dict)
-	bcs = tuple(getattr(tske.analytic.BoundaryConditions, bc) for bc in input_dict[K.GEOM][K.NODE_BC])
+	dx = input_dict[K.GEOM][K.GEOM_DX]
+	nodelist = input_dict[K.GEOM][K.NODES]
+	materials = [tske.Material.from_dict(m) for m in input_dict[K.DATA][K.MATERIALS]]
+	nodes = _build_node_array(nodelist, materials, times, dx)
+	bcs = []
+	for edge_node in [0, -1]:
+		bc = input_dict[K.GEOM][K.NODES][edge_node][K.NODE_BC]
+		bcs.append(getattr(tske.analytic.BoundaryConditions, bc))
 	matA, matB = tske.matrices.crank_nicolson(
 		method=method,
 		dt=dt,
+		dx=dx,
 		betas=input_dict[K.DATA][K.DATA_B],
 		lams=input_dict[K.DATA][K.DATA_L],
 		L=input_dict[K.DATA][K.DATA_BIG_L],
 		v1=input_dict[K.DATA][K.DATA_IV],
-		rhos=reactivity_arr.copy(),
-		node=uniform_node,
+		nodes=nodes,
 		bcs=bcs,
 		P0=None
 	)
