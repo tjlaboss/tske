@@ -55,11 +55,10 @@ def plot_only(output_dir: tske.tping.PathType):
 			times = np.loadtxt(tfpath)
 			powers = np.loadtxt(pfpath).T
 			# if len(times) != len(reactivities) != len(powers)  -> handled in plotting
-			tske.plotter.plot_3d_power(times, powers)
+			tske.plotter.plot_3d_power(times, powers, output_dir)
 		except Exception as e:
 			errs.append(f"Failed to plot power and reactivity: {type(e)}: {e}")
 		else:
-			plt.savefig(K.FNAME_FLUX)
 			print("Power and reactivity plot saved to:", K.FNAME_PR)
 	le = len(errs)
 	if le:
@@ -165,8 +164,8 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		tske.plotter.plot_3d_power(
 			times=times,
 			powers=power_vals,
+			output_dir=output_dir
 		)
-		plt.savefig(os.path.join(output_dir, K.FNAME_PR))
 	elif prplot == 2:
 		# Plot them separately
 		warnings.warn("Not implemented yet: separate power and reactivity plots", FutureWarning)

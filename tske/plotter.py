@@ -3,11 +3,13 @@ Plotter
 
 Plotting thingies
 """
+import tske.keys as K
 from tske.tping import T_arr
 from matplotlib import rcParams, cm
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 
 # This will make the y-labels not be so stupid.
@@ -115,6 +117,7 @@ def plot_reactivity_and_power(
 def plot_3d_power(
 		times: T_arr,
 		powers: T_arr,
+		output_dir,
 		dx=2,
 ):
 	"""Plot the reactor power and reactivity vs. time
