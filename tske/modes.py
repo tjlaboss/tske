@@ -134,10 +134,10 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		if to_show > 1:
 			plt.show()
 	power_vals, concentration_val_list = tske.solver.linalg(matA, matB, nx, num_steps)
-	np.savetxt(os.path.join(output_dir, K.FNAME_P), power_vals)
+	np.savetxt(os.path.join(output_dir, K.FNAME_P), power_vals.T)
 	for k, concentration_vals in enumerate(concentration_val_list):
 		fpath = os.path.join(output_dir, K.FNAME_FMT_C.format(k+1))
-		np.savetxt(fpath, concentration_vals)
+		np.savetxt(fpath, concentration_vals.T)
 	prplot = plots.get(K.PLOT_PR)
 	if prplot == 1:
 		tske.plotter.plot_reactivity_and_power(

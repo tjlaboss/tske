@@ -28,9 +28,9 @@ def __split_results(vecX: T_arr, nx: int, nt: int):
 	"""
 	n = nx*nt
 	ndg = len(vecX)//n - 1
-	P = vecX[:n].reshape((nt, nx))
+	P = vecX[:n].reshape((nt, nx)).T
 	C = vecX[n:].reshape((ndg, nt, nx))
-	Clist = [C[k, ...] for k in range(ndg)]
+	Clist = [C[k, ...].T for k in range(ndg)]
 	return P, Clist
 
 
