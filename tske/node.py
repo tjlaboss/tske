@@ -66,6 +66,29 @@ class Node1D:
 	def get_Dhat(self, adjacent):
 		return 2*self.D*adjacent.D/(self.D*adjacent.dx + adjacent.D*self.dx)
 	
+	def get_rho(self, bg2=0, k0=1, lambda_beta=0):
+		"""Calculate the reactivity
+		
+		Calculate kinf (or keff) and return the reactivity in delta_k.
+		
+		Parameters:
+		-----------
+		bg2: float, optional
+			Geometric buckling (cm^-2)
+			[Default: 0 -> kinf]
+		
+		k0: int, optional
+			Reactivity to measure relative to.
+			[Default: 1]
+		
+		lambda_beta: float, optional
+			Delayed neutron source
+			[Default: 0]
+		"""
+		k1 = (self.nuSigmaF + lambda_beta) / (self.sigmaA + self.D*bg2)
+		rho = (k1-k0)/(k1*k0)
+		return rho
+	
 	def get_interior_equation(self, left, right):
 		"""Get the matrix entries for a generic interior node
 		
