@@ -96,7 +96,22 @@ def _build_node_array(nodelist, materials, times, dx):
 					nodearr[i, n:] = newnode
 					break
 	return nodearr
+
+
+def _get_reactivities(node_arr, beta_arr, lambda_arr, bcs, nx, dx):
+	if bcs[0] == bcs[1] == tske.analytic.BoundaryConditions.reflective:
+		buck = 0
+	elif bcs[0] == bcs[1] == tske.analytic.BoundaryConditions.absorptive:
+		xx = (nx+1)*dx
+		buck = (np.pi/xx)**2
+	else:
+		xx = 2*(nx+1)*dx
+		buck = (np.pi/xx)**2
 	
+	bl = (beta_arr*lambda_arr).sum()
+	rhof = np.vectorize(lambda node: node.get_rho(bg2=buck, lambda_beta=bl))
+	return rhof(node_arr)
+
 
 def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	"""Solve the Spatial Kinetics Reactor Equations
@@ -130,12 +145,16 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 	for edge_node in [0, -1]:
 		bc = input_dict[K.GEOM][K.NODES][edge_node][K.NODE_BC]
 		bcs.append(getattr(tske.analytic.BoundaryConditions, bc))
+	beta_arr = np.array(input_dict[K.DATA][K.DATA_B])
+	lambda_arr = np.array(input_dict[K.DATA][K.DATA_L])
+	reactivities = _get_reactivities(nodes, beta_arr, lambda_arr, bcs, nx, dx)
+	np.savetxt(os.path.join(output_dir, K.FNAME_RHO), reactivities.T)
 	matA, matB = tske.matrices.crank_nicolson(
 		method=method,
 		dt=dt,
 		dx=dx,
-		betas=input_dict[K.DATA][K.DATA_B],
-		lams=input_dict[K.DATA][K.DATA_L],
+		betas=beta_arr,
+		lams=lambda_arr,
 		L=input_dict[K.DATA][K.DATA_BIG_L],
 		v1=input_dict[K.DATA][K.DATA_IV],
 		nodes=nodes,
@@ -161,11 +180,18 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		np.savetxt(fpath, concentration_vals.T)
 	prplot = plots.get(K.PLOT_PR)
 	if prplot == 1:
-		tske.plotter.plot_3d_power(
+		tske.plotter.plot_reactivity_and_power(
 			times=times,
 			powers=power_vals,
-			output_dir=output_dir
+			reacts=reactivities,
+			dx=dx
+			# output_dir=output_dir
 		)
+		# tske.plotter.plot_3d_power(
+		# 	times=times,
+		# 	powers=power_vals,
+		# 	output_dir=output_dir
+		# )
 	elif prplot == 2:
 		# Plot them separately
 		warnings.warn("Not implemented yet: separate power and reactivity plots", FutureWarning)

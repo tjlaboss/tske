@@ -23,7 +23,8 @@ def plot_reactivity_and_power(
 		times: T_arr,
 		reacts: T_arr,
 		powers: T_arr,
-		title_text=""
+		dx: float,
+		title_text="",
 ):
 	"""Plot the reactor power and reactivity vs. time
 	
@@ -48,7 +49,9 @@ def plot_reactivity_and_power(
 	nx, nt = powers.shape
 	assert nt == len(times), \
 		f"The number of times ({len(times)}), powers ({nt}), and reactivities ({nt}) must be equal."
-	xvals = np.arange(nx)
+	xvals = np.arange(nx)*dx
+	xlims = (xvals[0], xvals[-1])
+	ylims = (times[0], times[-1])
 	pzlims = (min(0.9, 0.9*powers.min()), max(1.1, 1.1*powers.max()))
 	rmin = reacts.min(); rmax = reacts.max()
 	rzlims = (min(1.1*rmin, 0.9*rmin), max(0.9*rmax, 1.1*rmax))
@@ -59,24 +62,30 @@ def plot_reactivity_and_power(
 	X, Y = np.meshgrid(xvals, times)
 	P = powers.T
 	pax.plot_surface(
-		X, Y, P, edgecolor=COLOR_P, color=COLOR_P,
-		alpha=0.3
+		X, Y, P,
+		edgecolor=COLOR_P,
+		#color=COLOR_P,
+		alpha=0.3,
+		cmap=cm.coolwarm,
 	)
 	pax.set(
-		xlim=(0, nx-1),         xlabel="x (cm)",
-		ylim=(0, max(times)),   ylabel="time (s)",
-		zlim=pzlims,            zlabel="Power",
-    )
+		xlim=xlims,  xlabel="x (cm)",
+		ylim=ylims,  ylabel="time (s)",
+		zlim=pzlims, zlabel="Power",
+	)
 	
 	# Plot reactivity
 	rax.plot_surface(
-		X, Y, reacts.T, edgecolor=COLOR_R, color=COLOR_R,
-		alpha=0.3
+		X, Y, reacts.T,
+		edgecolor="gray",
+		#edgecolor=COLOR_R,
+		alpha=0.3,
+		cmap=cm.bwr,
 	)
 	rax.set(
-		xlim=(0, nx-1),         xlabel="x (cm)",
-		ylim=(0, max(times)),   ylabel="time (s)",
-		zlim=rzlims,            zlabel=r"Reactivity (\$)",
+		xlim=xlims,  xlabel="x (cm)",
+		ylim=ylims,  ylabel="time (s)",
+		zlim=rzlims, zlabel=r"Reactivity (\$)",
 	)
 	
 	# Finish up.
@@ -84,32 +93,32 @@ def plot_reactivity_and_power(
 	if title_text:
 		plt.suptitle(title_text)
 	# plt.tight_layout()
+	# return
 	
 	# Make 2D plots too
 	fig2 = plt.figure(2, figsize=[11, 5])
-	time_indices = [0]
+	time_indices = {0}
+	time_indices |= set(np.argmax(powers, axis=1))
 	for t in np.ceil( np.logspace(0, np.log(nt-1), 5, base=np.e) ):
-		print(t)
-		time_indices.append(int(t))
-	# times2 = times[time_indices]
+		time_indices.add(int(t))
+	time_indices = list(sorted(time_indices))
 
 	pax2 = fig2.add_subplot(121)
 	rax2 = fig2.add_subplot(122)
 	for t in time_indices:
-		# lbl = fr"t = {times[t]*1e6:.0f} $\mu$s"
-		lbl = fr"t = {times[t]*1e3:.0f} ms"
-		pax2.plot(xvals, powers[:, t], "-",  label=lbl)
+		lbl = fr"t = {times[t]*1e3:.1f} ms"
+		pax2.semilogy(xvals, powers[:, t], "x-",  label=lbl)
 		pax2.set_ylabel(r"$\phi(x)$")
 		pax2.set_ylim(pzlims)
 		
-		rax2.plot(xvals, reacts[:, t], "--", label=lbl)
+		rax2.plot(xvals, reacts[:, t], "o--", label=lbl)
 		rax2.set_ylabel(r"$\rho(x)$ (\$)")
 		rax2.set_ylim(rzlims)
 		rax2.yaxis.set_label_position("right")
 		rax2.yaxis.tick_right()
 	for ax in (pax2, rax2):
 		ax.legend(loc=0)
-		ax.set_xlim([0, max(times)])
+		ax.set_xlim(xlims)
 		ax.set_xlabel("$x$ (cm)")
 	plt.tight_layout()
 
