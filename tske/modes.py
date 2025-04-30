@@ -102,7 +102,7 @@ def _get_reactivities(node_arr, beta_arr, lambda_arr, bcs, nx, dx):
 	if bcs[0] == bcs[1] == tske.analytic.BoundaryConditions.reflective:
 		buck = 0
 	elif bcs[0] == bcs[1] == tske.analytic.BoundaryConditions.absorptive:
-		xx = (nx+1)*dx
+		xx = (nx+2)*dx
 		buck = (np.pi/xx)**2
 	else:
 		xx = 2*(nx+1)*dx
@@ -110,7 +110,10 @@ def _get_reactivities(node_arr, beta_arr, lambda_arr, bcs, nx, dx):
 	
 	bl = (beta_arr*lambda_arr).sum()
 	rhof = np.vectorize(lambda node: node.get_rho(bg2=buck, lambda_beta=bl))
-	return rhof(node_arr)
+	reactivities =  rhof(node_arr) / beta_arr.sum()
+	# force reactivities to start at 0
+	reactivities -= np.tile(reactivities[:,0], (reactivities.shape[1], 1)).T
+	return reactivities
 
 
 def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
