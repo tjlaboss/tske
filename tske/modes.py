@@ -193,8 +193,8 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 			times=times,
 			powers=power_vals,
 			reacts=reactivities,
-			dx=dx
-			# output_dir=output_dir
+			dx=dx,
+			output_dir=output_dir
 		)
 	elif prplot == 2:
 		# Plot them separately
