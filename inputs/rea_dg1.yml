@@ -1,28 +1,28 @@
-# Implicit (Backward) Euler, 50 pcm control rod withdrawal.
+# Crank-Nicolson, REA
 
 time:
-  total: 1.0e-2  # s
+  total: 4.0e-2  # s
   dt: 1.0e-4  # s
 
 data:
   #                  1
-  delay_fractions: [700]  # pcm
+  delay_fractions: [650]  # pcm
   decay_constants: [0.1]  # s^-1
-  Lambda: 1.1893151923122665e-05  # s
+  Lambda: 1.2066365007541478e-05  # s
   ivelocity: 2.0e-6
   materials:
     # Material 0: Rodded Fuel
-    - sigma_a: 0.10
-      prompt_nu_sigma_f: 0.168164
+    - sigma_a: 0.100
+      prompt_nu_sigma_f: 0.16575
       diffusion_coefficient: 1.0
     # Material 1: Unrodded Fuel
-    - sigma_a: 0.095
-      prompt_nu_sigma_f: 0.168164
-      diffusion_coefficient: 1.01
+    - sigma_a: 0.092
+      prompt_nu_sigma_f: 0.16575
+      diffusion_coefficient: 1.0
     # Material 2: Shutdown
-    - sigma_a: 0.11
-      prompt_nu_sigma_f: 0.168164
-      diffusion_coefficient: 0.9
+    - sigma_a: 0.101
+      prompt_nu_sigma_f: 0.16575
+      diffusion_coefficient: 1.0
 
 
 
@@ -33,12 +33,16 @@ geometry:
       boundary_condition: "absorptive"
     - material: 0
       swaps:
-        0.005: 1
-        0.006: 2
+        0.003: 1
+#        0.023: 2
     - material: 0
     - material: 0
+      swaps:
+        0.023: 2
     - material: 0
       boundary_condition: "absorptive"
+      swaps:
+        0.023: 2
 
 
 method: "crank-nicolson"
