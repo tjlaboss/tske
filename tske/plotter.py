@@ -5,15 +5,12 @@ Plotting thingies
 """
 import tske.keys as K
 from tske.tping import T_arr
-from matplotlib import rcParams, cm
+from matplotlib import cm
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-
-# This will make the y-labels not be so stupid.
-# rcParams['axes.formatter.useoffset'] = False
 
 COLOR_P = "forestgreen"
 COLOR_R = "firebrick"
@@ -135,122 +132,6 @@ def plot_reactivity_and_power(
 	fig3.savefig(os.path.join(output_dir, K.FNAME_FLUX2))
 	fig4.tight_layout()
 	fig3.savefig(os.path.join(output_dir, K.FNAME_REACT2))
-
-
-def plot_3d_power(
-		times: T_arr,
-		powers: T_arr,
-		output_dir,
-		dx=2,
-):
-	"""Plot the reactor power and reactivity vs. time
-	
-	Parameters:
-	-----------
-	times: collection of float
-		List of times (s)
-		
-	powers: ndarray of float
-		2D array (nx, nt) of powers/fluxes (power_units).
-	
-	"""
-	nx, nt = powers.shape
-	assert nt == len(times), \
-		f"The number of times ({len(times)}), powers ({nt}), and reactivities ({nt}) must be equal."
-	xvals = np.arange(nx)*dx
-	XL = (nx-1)*dx
-	
-	times *= 1e3
-	
-	# Plot power 3D
-	# fig = plt.figure(figsize=[9,4])
-	# pax1 = fig.add_subplot(121, projection='3d')
-	fig1 = plt.figure(1, figsize=FS)
-	pax1 = fig1.add_subplot(111, projection='3d')
-	X, Y = np.meshgrid(xvals, times)
-	P = powers.T
-	pax1.plot_surface(
-		X, Y, P,
-		edgecolor=COLOR_P, # color=COLOR_P,
-		cmap=cm.coolwarm,
-		alpha=0.3
-	)
-	pzlims = (powers.min(), 1.05*powers.max())
-	pax1.set(
-		xlim=(0, XL),           xlabel="x (cm)",
-		ylim=(0, max(times)),   ylabel="time (ms)",
-		zlim=pzlims,            zlabel=r"$\phi(x,t)$"
-    )
-	pax1.zaxis.set_label_position("lower")
-	pax1.zaxis.labelpad=-12
-	# fig1.tight_layout()
-	plt.savefig(os.path.join(output_dir, K.FNAME_FLUX3))
-	
-	# Make 2D plot too
-	# pax2 = fig.add_subplot(122)
-	fig2 = plt.figure(2, figsize=FS)
-	pax2 = fig2.add_subplot(111)
-	time_indices = []
-	# for t in np.ceil(np.logspace(0, np.log(nt - 1), 5, base=np.e)):
-	for t in np.ceil(np.linspace(0, nt - 1, 5)):
-		time_indices.append(int(t))
-	for t in time_indices:
-		lbl = fr"t = {times[t]:.0f} ms"
-		pax2.semilogy(xvals, powers[:, t], "-", label=lbl)
-		pax2.set_xlabel("x (cm)")
-		pax2.set_xlim([0, XL])
-		pax2.set_ylabel(r"$\phi(x,t)$")
-		pax2.yaxis.set_label_position("right")
-		pax2.yaxis.tick_right()
-		# pax2.yticks.set_position("right")
-	pzlims = (powers[:,time_indices].min(), 1.05*powers[:,time_indices].max())
-	pax2.set_ylim(pzlims)
-	pax2.grid()
-	pax2.legend()
-	fig2.tight_layout()
-	plt.savefig(os.path.join(output_dir, K.FNAME_FLUX2))
-	
-	# Finish up.
-	# plt.tight_layout()
-
-
-def plot_convergence(dts: T_arr, errors: T_arr, in_percent=False):
-	"""Plot the convergence of a solution as a function of timestep size
-	
-	Parameters:
-	-----------
-	dts: collection of float
-		List of 'dt' values.
-	
-	errors: collection of float
-		List of the relative errors for each 'dt'.
-	
-	in_percent: bool, optional
-		Whether the provided errors are in percent.
-		[Default: False]
-	"""
-	lendts = len(dts)
-	lenerr = len(errors)
-	assert lendts == lenerr, \
-		f"The number of dt ({lendts}) and errors ({lenerr}) must be equal."
-	ax = plt.figure().add_subplot()
-	ax.plot(dts, errors, 'rx')
-	ax.set_xlabel(r"$\Delta t$ (s)")
-	if in_percent:
-		ax.set_ylabel(r"% Error in Power")
-	else:
-		ax.set_ylabel(r"Relative Error in Power")
-	# Make sure the markers are visible of the plot
-	xmin = min(dts)*0.9
-	xmax = max(dts)*1.1
-	ymin = min(min(errors)*1.1, -0.01)
-	ymax = max(max(errors)*1.1, +0.01)
-	ax.set_xlim([xmin, xmax])
-	ax.set_ylim([ymin, ymax])
-	# highlight zero
-	ax.plot([xmin, xmax], [0, 0], 'k-', lw=2)
-	ax.grid()
-	plt.tight_layout()
 
 
 def plot_matrix(matA):
