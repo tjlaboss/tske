@@ -60,7 +60,7 @@ def plot_only(output_dir: tske.tping.PathType):
 			config = tske.yamlin.load_input_file(cfgyml)
 			dx = config[K.GEOM][K.GEOM_DX]
 			tske.plotter.plot_reactivity_and_power(
-				times, reactivities, powers, dx
+				times, reactivities, powers, dx, output_dir
 			)
 		except Exception as e:
 			errs.append(f"Failed to plot power and reactivity: {type(e)}: {e}")

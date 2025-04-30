@@ -17,14 +17,14 @@ import os
 
 COLOR_P = "forestgreen"
 COLOR_R = "firebrick"
-
+FS = (5.0, 4.0)
 
 def plot_reactivity_and_power(
 		times: T_arr,
 		reacts: T_arr,
 		powers: T_arr,
 		dx: float,
-		title_text="",
+		output_dir: str,
 ):
 	"""Plot the reactor power and reactivity vs. time
 	
@@ -38,6 +38,12 @@ def plot_reactivity_and_power(
 	
 	powers: ndarray of float
 		2D array (nx, nt) of powers/fluxes (power_units).
+	
+	dx: float
+		Delta x (cm)
+	
+	output_dir: str
+		Output directory to save plots to
 	
 	title_text: str, optional
 		Title for the plot.
@@ -56,9 +62,10 @@ def plot_reactivity_and_power(
 	rmin = reacts.min(); rmax = reacts.max()
 	rzlims = (min(1.1*rmin, 0.9*rmin), max(0.9*rmax, 1.1*rmax))
 	# Plot power
-	fig = plt.figure(1, figsize=[11,5])
-	pax = fig.add_subplot(121, projection='3d')
-	rax = fig.add_subplot(122, projection='3d')
+	fig1 = plt.figure(1, figsize=FS)
+	fig2 = plt.figure(2, figsize=FS)
+	pax = fig1.add_subplot(projection='3d')
+	rax = fig2.add_subplot(projection='3d')
 	X, Y = np.meshgrid(xvals, times)
 	P = powers.T
 	pax.plot_surface(
@@ -71,7 +78,7 @@ def plot_reactivity_and_power(
 	pax.set(
 		xlim=xlims,  xlabel="x (cm)",
 		ylim=ylims,  ylabel="time (s)",
-		zlim=pzlims, zlabel="Power",
+		zlim=pzlims, zlabel=r"$\phi(x,t)$",
 	)
 	
 	# Plot reactivity
@@ -85,42 +92,49 @@ def plot_reactivity_and_power(
 	rax.set(
 		xlim=xlims,  xlabel="x (cm)",
 		ylim=ylims,  ylabel="time (s)",
-		zlim=rzlims, zlabel=r"Reactivity (\$)",
+		zlim=rzlims, zlabel=r"$\rho(x,t)$ (\$)",
 	)
 	
 	# Finish up.
-	fig.tight_layout()
-	if title_text:
-		plt.suptitle(title_text)
-	# plt.tight_layout()
-	# return
+	fig1.tight_layout()
+	fig1.savefig(os.path.join(output_dir, K.FNAME_FLUX3))
+	fig2.tight_layout()
+	fig2.savefig(os.path.join(output_dir, K.FNAME_REACT3))
 	
 	# Make 2D plots too
-	fig2 = plt.figure(2, figsize=[11, 5])
+	# fig2 = plt.figure(2, figsize=[11, 5])
+	fig3 = plt.figure(3, figsize=FS)
+	fig4 = plt.figure(4, figsize=FS)
 	time_indices = {0}
 	time_indices |= set(np.argmax(powers, axis=1))
 	for t in np.ceil( np.logspace(0, np.log(nt-1), 5, base=np.e) ):
 		time_indices.add(int(t))
 	time_indices = list(sorted(time_indices))
 
-	pax2 = fig2.add_subplot(121)
-	rax2 = fig2.add_subplot(122)
+	pax2 = fig3.add_subplot()
+	rax2 = fig4.add_subplot()
 	for t in time_indices:
 		lbl = fr"t = {times[t]*1e3:.1f} ms"
-		pax2.semilogy(xvals, powers[:, t], "x-",  label=lbl)
+		pax2.plot(xvals, powers[:, t], "x-",  label=lbl)
 		pax2.set_ylabel(r"$\phi(x)$")
 		pax2.set_ylim(pzlims)
+		pax2.grid(which='both')
+		pax2.yaxis.set_ticks(np.arange(0, powers.max()+5, 5))
 		
 		rax2.plot(xvals, reacts[:, t], "o--", label=lbl)
 		rax2.set_ylabel(r"$\rho(x)$ (\$)")
 		rax2.set_ylim(rzlims)
 		rax2.yaxis.set_label_position("right")
 		rax2.yaxis.tick_right()
+		rax2.grid()
 	for ax in (pax2, rax2):
 		ax.legend(loc=0)
 		ax.set_xlim(xlims)
 		ax.set_xlabel("$x$ (cm)")
-	plt.tight_layout()
+	fig3.tight_layout()
+	fig3.savefig(os.path.join(output_dir, K.FNAME_FLUX2))
+	fig4.tight_layout()
+	fig3.savefig(os.path.join(output_dir, K.FNAME_REACT2))
 
 
 def plot_3d_power(
@@ -148,7 +162,6 @@ def plot_3d_power(
 	
 	times *= 1e3
 	
-	FS = [5,4]
 	# Plot power 3D
 	# fig = plt.figure(figsize=[9,4])
 	# pax1 = fig.add_subplot(121, projection='3d')

@@ -70,6 +70,8 @@ FNAME_SPY = "spy" + EXT
 FNAME_PR = "power_reactivity" + EXT
 FNAME_FLUX2 = "flux2d" + EXT
 FNAME_FLUX3 = "flux3d" + EXT
+FNAME_REACT2 = "rho2d" + EXT
+FNAME_REACT3 = "rho3d" + EXT
 FNAME_CONVERGE = "timestep_study" + EXT
 
 # Text names
