@@ -46,6 +46,8 @@ def plot_only(output_dir: tske.tping.PathType):
 	# Power-Reactivity plot
 	tfpath = os.path.join(output_dir, K.FNAME_TIME)
 	pfpath = os.path.join(output_dir, K.FNAME_P)
+	rfpath = os.path.join(output_dir, K.FNAME_RHO)
+	cfgyml = os.path.join(output_dir, K.FNAME_CFG)
 	if not os.path.exists(tfpath):
 		errs.append(f"Times could not be found at: {tfpath}")
 	elif not os.path.exists(pfpath):
@@ -54,8 +56,12 @@ def plot_only(output_dir: tske.tping.PathType):
 		try:
 			times = np.loadtxt(tfpath)
 			powers = np.loadtxt(pfpath).T
-			# if len(times) != len(reactivities) != len(powers)  -> handled in plotting
-			tske.plotter.plot_3d_power(times, powers, output_dir)
+			reactivities = np.loadtxt(rfpath).T
+			config = tske.yamlin.load_input_file(cfgyml)
+			dx = config[K.GEOM][K.GEOM_DX]
+			tske.plotter.plot_reactivity_and_power(
+				times, reactivities, powers, dx
+			)
 		except Exception as e:
 			errs.append(f"Failed to plot power and reactivity: {type(e)}: {e}")
 		else:
@@ -190,11 +196,6 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 			dx=dx
 			# output_dir=output_dir
 		)
-		# tske.plotter.plot_3d_power(
-		# 	times=times,
-		# 	powers=power_vals,
-		# 	output_dir=output_dir
-		# )
 	elif prplot == 2:
 		# Plot them separately
 		warnings.warn("Not implemented yet: separate power and reactivity plots", FutureWarning)
