@@ -1,0 +1,40 @@
+# Crank Nicolson, 1 Delayed Group, Finite Geometry, Null
+
+time:
+  total: 1.0e-1  # s
+  dt: 1.0e-4  # s
+
+data:
+  #                  1
+  delay_fractions: [650]  # pcm
+  decay_constants: [0.1]  # s^-1
+  Lambda: 2.0130850528434823e-05  # s
+  ivelocity: 2.0e-6
+  materials:
+    # Material 0: Rodded Fuel
+    - sigma_a: 0.100
+      prompt_nu_sigma_f: 0.16575
+      diffusion_coefficient: 1.0
+
+
+
+geometry:
+  delta_x: 2.0
+  nodes:
+    - boundary_condition: "absorptive"
+      material: 0
+    - material: 0
+    - material: 0
+    - material: 0
+    - material: 0
+      boundary_condition: "absorptive"
+
+
+method: "crank-nicolson"
+
+
+plots:
+  power_reactivity: 1
+  show: 1  # 0=no, 1=at end, 2=immediately
+  spy: 0
+
