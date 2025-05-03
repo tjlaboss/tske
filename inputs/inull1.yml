@@ -1,4 +1,4 @@
-# Crank Nicolson, 1 Delayed Group, Null
+# Crank Nicolson, 1 Delayed Group, Infinite Geometry, Null
 
 time:
   total: 1.0e-1  # s
