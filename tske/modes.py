@@ -110,14 +110,14 @@ def study_timesteps(
 			f.write(str(dt))
 		solution(cfg, out_fpath)
 		power = _load_solution(out_fpath)
-		report += f"\nP(dt={dt:.2e} s): {power:.4f}"
+		report += f"\nP(dt={dt:.2e} s): {power:.5f}"
 		# Calculate the relative error vs. the reference solution.
 		if i == 0:
 			ref = power
 			error = 0
 		else:
 			error = (power - ref)/ref
-			report += f" | Error: {error:+8.4%}"
+			report += f" | Error: {error*1e5:+8.5} pcm"
 		errors.append(error)
 	print(report)
 	with open(os.path.join(output_dir, K.FNAME_REPORT), 'w') as f:
@@ -136,7 +136,7 @@ def _load_solution(study_dir: tske.tping.PathType) -> float:
 	fpath = os.path.join(study_dir, K.FNAME_P)
 	try:
 		powers = np.loadtxt(fpath)
-		endpow = powers[-1, :].max()
+		endpow = powers.max()
 		return float(endpow)
 	except Exception as e:
 		warnings.warn(f"Failed to load {fpath}: {e}", Warning)
