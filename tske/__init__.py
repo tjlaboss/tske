@@ -14,6 +14,7 @@ import tske.actions
 import tske.arguments
 import tske.matrices
 import tske.reactivity
+import tske.solution
 import tske.solver
 import tske.yamlin
 import tske.plotter
