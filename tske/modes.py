@@ -99,6 +99,8 @@ def study_timesteps(
 	dts = sorted(dts)
 	errors = []
 	ref = np.nan
+	header = "Timestep Study:"
+	report = header + "\n" + '='*len(header)
 	for i, dt in enumerate(dts):
 		cfg = dict(input_dict)
 		cfg[K.TIME][K.TIME_DELTA] = dt
@@ -108,7 +110,7 @@ def study_timesteps(
 			f.write(str(dt))
 		solution(cfg, out_fpath)
 		power = _load_solution(out_fpath)
-		report = f"\tP(dt={dt:.2e} s): {power:.4f}"
+		report += f"\n\tP(dt={dt:.2e} s): {power:.4f}"
 		# Calculate the relative error vs. the reference solution.
 		if i == 0:
 			ref = power
@@ -116,7 +118,7 @@ def study_timesteps(
 		else:
 			error = (power - ref)/ref
 			report += f" | Error: {error:+8.4%}"
-		print(report)
+		# print(report)
 		errors.append(error)
 	with open(os.path.join(output_dir, K.FNAME_REPORT), 'w') as f:
 		f.write(report)
