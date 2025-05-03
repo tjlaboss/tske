@@ -111,8 +111,8 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 		bcs=bcs,
 		P0=None
 	)
-	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_A), matA)
-	np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_B), matB)
+	# np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_A), matA)
+	# np.savetxt(os.path.join(output_dir, K.FNAME_MATRIX_B), matB)
 	to_show = plots.get(K.PLOT_SHOW, 0)
 	if plots.get(K.PLOT_SPY):
 		tske.plotter.plot_matrix(matA)
