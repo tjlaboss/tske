@@ -119,7 +119,6 @@ def plot_reactivity_and_power(
 		pax2.set_ylabel(r"$\phi(x)$")
 		pax2.set_ylim(pzlims)
 		pax2.grid(which='both')
-		pax2.yaxis.set_ticks(np.arange(0, powers.max()+5, 5))
 		
 		rax2.plot(xvals, reacts[:, t], "o--", label=lbl)
 		rax2.set_ylabel(r"$\rho(x)$ (\$)")
@@ -134,7 +133,7 @@ def plot_reactivity_and_power(
 	fig3.tight_layout()
 	fig3.savefig(os.path.join(output_dir, K.FNAME_FLUX2))
 	fig4.tight_layout()
-	fig3.savefig(os.path.join(output_dir, K.FNAME_REACT2))
+	fig4.savefig(os.path.join(output_dir, K.FNAME_REACT2))
 
 
 def plot_convergence(dts: T_arr, errors: T_arr, in_percent=False):
