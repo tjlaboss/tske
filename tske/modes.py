@@ -110,7 +110,7 @@ def study_timesteps(
 			f.write(str(dt))
 		solution(cfg, out_fpath)
 		power = _load_solution(out_fpath)
-		report += f"\n\tP(dt={dt:.2e} s): {power:.4f}"
+		report += f"\nP(dt={dt:.2e} s): {power:.4f}"
 		# Calculate the relative error vs. the reference solution.
 		if i == 0:
 			ref = power
@@ -118,8 +118,8 @@ def study_timesteps(
 		else:
 			error = (power - ref)/ref
 			report += f" | Error: {error:+8.4%}"
-		# print(report)
 		errors.append(error)
+	print(report)
 	with open(os.path.join(output_dir, K.FNAME_REPORT), 'w') as f:
 		f.write(report)
 	plot_dts = np.array(dts)[1:]
