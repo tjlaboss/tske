@@ -9,6 +9,7 @@ or to write my own Gauss-Seidel iterator, but that's not a priority.
 """
 
 import scipy.linalg as la
+import scipy.sparse.linalg as spla
 from tske.tping import T_arr
 
 
@@ -32,6 +33,12 @@ def __split_results(vecX: T_arr, nx: int, nt: int):
 	C = vecX[n:].reshape((ndg, nt, nx))
 	Clist = [C[k, ...].T for k in range(ndg)]
 	return P, Clist
+
+
+def sparse_linalg(matA, matB, nx, nt):
+	"""Solve using scipy sparse matrix methods"""
+	vecX = spla.spsolve(matA.tocsr(), matB.tocsr())
+	return __split_results(vecX, nx, nt)
 
 
 def linalg(matA: T_arr, vecB: T_arr, nx: int, nt: int):

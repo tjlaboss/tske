@@ -121,7 +121,7 @@ def solution(input_dict: typing.Mapping, output_dir: tske.tping.PathType):
 			plt.show()
 	tick = time.time()
 	print("Solving...")
-	power_vals, concentration_val_list = tske.solver.linalg(matA, matB, nx, num_steps)
+	power_vals, concentration_val_list = tske.solver.sparse_linalg(matA, matB, nx, num_steps)
 	tock = time.time()
 	print(f"...Completed in {tock - tick:.2f} seconds. Outputs saved to: {output_dir}.")
 	np.savetxt(os.path.join(output_dir, K.FNAME_P), power_vals.T)

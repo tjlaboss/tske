@@ -5,6 +5,7 @@ Matrix builders for Spatial Kinetics Equations
 """
 
 import numpy as np
+from scipy import sparse
 import typing
 import enum
 from tske import keys, analytic, Node1D
@@ -136,8 +137,8 @@ def crank_nicolson(
 		"""convert 3 indices to 1 index"""
 		return index_x + index_t*nx + index_c*nt*nx
 
-	A = np.zeros((size, size))
-	B = np.zeros(size)
+	A = sparse.lil_array((size, size))
+	B = sparse.lil_array((size,1))
 	
 	# Initial flux distribution
 	if P0 is None:
