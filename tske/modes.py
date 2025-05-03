@@ -134,7 +134,7 @@ def _load_solution(study_dir: tske.tping.PathType) -> float:
 	fpath = os.path.join(study_dir, K.FNAME_P)
 	try:
 		powers = np.loadtxt(fpath)
-		endpow = powers.flatten()[-1]
+		endpow = powers[-1, :].max()
 		return float(endpow)
 	except Exception as e:
 		warnings.warn(f"Failed to load {fpath}: {e}", Warning)
